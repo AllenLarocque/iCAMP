@@ -23,7 +23,7 @@ NRI.cm(comm, dis, meta.group = NULL, meta.spool = NULL,
   \item{weighted}{Logic, consider abundances or not (just presence/absence). default is TRUE.}
   \item{check.name}{Logic, whether to check the species names in comm and dis. default is TRUE.}
   \item{rand}{integer, randomization times. default is 1000.}
-  \item{output.MPD}{Logic, whether to output observed MNTD, so that you do not need to calculate observed MNTD alone. default is FALSE.}
+  \item{output.MPD}{Logic, whether to output observed MPD, so that you do not need to calculate observed MPD alone. default is FALSE.}
   \item{silent}{Logic, if FALSE, some messages will be showed during calculation. Default is FALSE.}
   \item{sig.index}{character, the index for null model significance test. SES or NRI, standard effect size, i.e. net relatedness index (NRI); Confidence, percentage of null values less extreme than the observed value, i.e. non-parametric one-side confidence level; RC, modified Raup-Crick index (RC) based on MPD, i.e. count the number of null MPD lower than observed MPD plus a half of the number of null MPD equal to observed MPD, to get alpha, then calculate MPD-based RC as (2 x alpha - 1); all, output all the three indexes. default is SES. If input a vector, only the first element will be used.}
 }
@@ -51,10 +51,11 @@ Ning, D., Yuan, M., Wu, L., Zhang, Y., Guo, X., Zhou, X. et al. (2020). A quanti
 Daliang Ning
 }
 \note{
+Version 2: 2023.12.23, fix a bug when input comm is data.frame.
 Version 1: 2021.8.4
 }
 \seealso{
-\code{\link{NRI.p}}
+\code{\link{NRI.p}}, \code{\link{NRI.cm.big}}
 }
 \examples{
 data("example.data")

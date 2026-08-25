@@ -82,7 +82,7 @@ NTI.cm<-function(comm, dis, meta.group=NULL,meta.spool=NULL,
       if(ncol(comj)>0)
       {
         spj.rd=sample(meta.spool[[j]],ncol(comj))
-        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=comj
+        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=as.matrix(comj)
       }
     }
     comr=comr[,colSums(comr)>0,drop=FALSE]

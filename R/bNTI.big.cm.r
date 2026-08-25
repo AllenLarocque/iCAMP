@@ -2,7 +2,7 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
                       pd.spname,pd.wd, spname.check=TRUE,
                       nworker=4, memo.size.GB=50, weighted=TRUE,
                       exclude.consp=FALSE,rand=1000,output.dtail=FALSE,
-                      RC=FALSE, trace=TRUE)
+                      RC=FALSE, trace=TRUE, unit.sum=NULL)
 {
   requireNamespace("parallel")
   requireNamespace("bigmemory")
@@ -68,7 +68,7 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
   sp.num=length(pd.spname)
   
   bMNTD.random<-function(i,pd.desc,comms,meta.group,meta.spool,meta.spall,pd.spname,
-                         weighted,exclude.consp,pd.wd,trace.seq)
+                         weighted,exclude.consp,pd.wd,trace.seq,unit.sum)
   {
     if(!is.null(trace.seq)){if(i %in% trace.seq) message("Now randomizing i=",i,". ",date())}
     
@@ -81,13 +81,14 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
       if(ncol(comj)>0)
       {
         spj.rd=sample(meta.spool[[j]],ncol(comj))
-        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=comj
+        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=as.matrix(comj)
       }
     }
     comr=comr[,colSums(comr)>0,drop=FALSE]
     bMNTD.rand<-iCAMP::bmntd.big(comm=comr, pd.desc=pd.desc, pd.spname=pd.spname,
                           pd.wd=pd.wd, spname.check=FALSE, abundance.weighted=weighted,
-                          exclude.conspecifics=exclude.consp, time.output = FALSE)
+                          exclude.conspecifics=exclude.consp, time.output = FALSE,
+                          unit.sum=unit.sum)
     as.matrix(bMNTD.rand)
   }
   
@@ -96,7 +97,8 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
   if(trace) message("Now calculating observed betaMNTD. Begin at ", date(),". Please wait...")
   bMNTD.obs<-as.matrix(bmntd.big(comm=comm, pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
                                  spname.check=FALSE, abundance.weighted=weighted,
-                                 exclude.conspecifics=exclude.consp,time.output=FALSE))
+                                 exclude.conspecifics=exclude.consp,time.output=FALSE,
+                                 unit.sum=unit.sum))
   gc()
   
   if(nworker==1)
@@ -105,7 +107,7 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
                       pd.desc=pd.desc,comms=comms,meta.group=meta.group,
                       meta.spool=meta.spool,meta.spall=meta.spall,pd.spname=pd.spname,
                       weighted=weighted,exclude.consp=exclude.consp,
-                      pd.wd=pd.wd,trace.seq=trace.seq)
+                      pd.wd=pd.wd,trace.seq=trace.seq,unit.sum=unit.sum)
   }else{
     c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
     if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
@@ -115,7 +117,7 @@ bNTI.big.cm<-function(comm, meta.group=NULL, meta.spool=NULL, pd.desc="pd.desc",
                                     pd.desc=pd.desc,comms=comms,meta.group=meta.group,
                                     meta.spool=meta.spool,meta.spall=meta.spall,pd.spname=pd.spname,
                                     weighted=weighted,exclude.consp=exclude.consp,
-                                    pd.wd=pd.wd,trace.seq=NULL)
+                                    pd.wd=pd.wd,trace.seq=NULL,unit.sum=unit.sum)
     parallel::stopCluster(c1)
     gc()
     message("Now parallel computation has finished, beta NTI is calculating. ",date())

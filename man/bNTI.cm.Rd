@@ -67,6 +67,7 @@ Ning, D., Yuan, M., Wu, L., Zhang, Y., Guo, X., Zhou, X. et al. (2020). A quanti
 Daliang Ning
 }
 \note{
+Version 2: 2023.12.23, fix a bug when input comm is data.frame.
 Version 1: 2021.8.4
 }
 \seealso{

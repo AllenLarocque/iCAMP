@@ -74,8 +74,9 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 3: 2023.12.23, fix a bug when input comm is data.frame.
 Version 2: 2021.12.9, previous 'paste' led to error; corrected to 'paste0'.
-Version 1: 2021.8.4
+Version 1: 2021.8.4.
 }
 \seealso{
 \code{\link{bNRI.bin.big}}, \code{\link{icamp.cm}}, \code{\link{bNRI.cm}}

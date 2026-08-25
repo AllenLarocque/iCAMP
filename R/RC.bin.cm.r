@@ -26,6 +26,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
   }
   
   if(!weighted){com[com>0]=1}
+  comm=com
   
   ##########################
   ## check IDs in meta communities
@@ -138,7 +139,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
            })
   }
   
-  BC.obs<-bin.BC(comi=com,bin.lev=bin.lev,bin.num=bin.num,sp.bin=sp.bin,
+  BC.obs<-bin.BC(comi=comm,bin.lev=bin.lev,bin.num=bin.num,sp.bin=sp.bin,
                  unit.sum=unit.sum,na.zero=na.zero,taxo.metric=taxo.metric,
                  transform.method=transform.method,logbase=logbase)
   BC.obs<-array(unlist(BC.obs),dim = c(nrow(BC.obs[[1]]),ncol(BC.obs[[1]]),bin.num))
@@ -186,7 +187,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
             idik=match(names(Sik)[i],rownames(com.rd))
             if(length(id.sp)==1){com.rd[idik,id.sp]=1}else{
               requireNamespace("DirichletReg")
-              com.rd[idik,id.sp]=DirichletReg::rdirichlet(n=1,alpha = meta.abk[id.sp])
+              com.rd[idik,id.sp]=DirichletReg::rdirichlet(n=1,alpha = meta.abk[id.sp]/sum(meta.abk[id.sp]))
             }
           }
         }
@@ -240,11 +241,12 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
       for(i in 1:(dim(rc)[3]))
       {
         result[[i]]=rc[,,i]
-        colnames(result[[i]])<-rownames(result[[i]])<-rownames(com)
+        colnames(result[[i]])<-rownames(result[[i]])<-rownames(comm)
       }
     }else if(sig.index=="Confidence"){
       alpha[which(alpha2>alpha, arr.ind = TRUE)]=-alpha2[which(alpha2>alpha, arr.ind = TRUE)]
-      colnames(alpha)<-rownames(alpha)<-rownames(com)
+      alpha=alpha/rand # need to add this line. This error was found by Chen-feng Lin. Fixed on 2025.2.3
+      colnames(alpha)<-rownames(alpha)<-rownames(comm)
       result=lapply(1:(dim(alpha)[3]),function(i){alpha[,,i]})
     }else if(sig.index=="SES"){
       result=lapply(1:(dim(BC.obs)[3]),
@@ -253,7 +255,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
                       BC.rdli=sapply(1:length(BC.rdl),function(x){BC.rdl[[x]][,,i]},simplify = "array")
                       SESi=(BC.obs[,,i]-apply(BC.rdli,c(1,2),mean))/(apply(BC.rdli,c(1,2),stats::sd))
                       diag(SESi)<-0
-                      colnames(SESi)<-rownames(SESi)<-rownames(com)
+                      colnames(SESi)<-rownames(SESi)<-rownames(comm)
                       SESi
                     })
     }
@@ -279,31 +281,31 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
       for(i in 1:(dim(rc)[3]))
       {
         result[[i]]=rc[,,i]
-        colnames(result[[i]])<-rownames(result[[i]])<-rownames(com)
+        colnames(result[[i]])<-rownames(result[[i]])<-rownames(comm)
       }
     }else if(sig.index=="Confidence"){
       BC.obsar=array(BC.obs,dim=dim(BC.rd))
       alpha=(apply(BC.obsar>BC.rd,c(1,2,3),sum))/rand
       alpha2=(apply(BC.obsar<BC.rd,c(1,2,3),sum))/rand
       alpha[which(alpha2>alpha, arr.ind = TRUE)]=-alpha2[which(alpha2>alpha, arr.ind = TRUE)]
-      result=lapply(1:(dim(alpha)[3]), function(i){out=alpha[,,i];colnames(out)<-rownames(out)<-rownames(com);out})
+      result=lapply(1:(dim(alpha)[3]), function(i){out=alpha[,,i];colnames(out)<-rownames(out)<-rownames(comm);out})
     }else if(sig.index=="SES"){
       SES=(BC.obs-apply(BC.rd,c(1,2,3),mean))/(apply(BC.rd,c(1,2,3),stats::sd))
-      result=lapply(1:(dim(SES)[3]), function(i){out=SES[,,i];diag(out)=0;colnames(out)<-rownames(out)<-rownames(com);out})
+      result=lapply(1:(dim(SES)[3]), function(i){out=SES[,,i];diag(out)=0;colnames(out)<-rownames(out)<-rownames(comm);out})
     }
   }
   
   output=list(index=result,sig.index=sig.index)
   if(output.bray)
   {
-    colnames(BC.obs)<-rownames(BC.obs)<-rownames(com)
+    colnames(BC.obs)<-rownames(BC.obs)<-rownames(comm)
     output=c(output,list(BC.obs=lapply(1:(dim(BC.obs)[3]),function(i){BC.obs[,,i]})))
   }
   if(detail.null)
   {
     if(big.method[1]=="loop")
     {
-      for(i in 1:length(BC.rdl)){colnames(BC.rdl[[i]])<-rownames(BC.rdl[[i]])<-rownames(com)}
+      for(i in 1:length(BC.rdl)){colnames(BC.rdl[[i]])<-rownames(BC.rdl[[i]])<-rownames(comm)}
       samp2.name=(iCAMP::dist.3col(BC.rdl[[1]][,,1]))[,1:2,drop=FALSE]
       BC.randm=lapply(1:(dim(BC.rdl[[1]])[3]),
                       function(i)
@@ -317,7 +319,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
                         data.frame(samp2.name,outi,stringsAsFactors = FALSE)
                       })
     }else{
-      rownames(BC.rd)<-colnames(BC.rd)<-rownames(com)
+      rownames(BC.rd)<-colnames(BC.rd)<-rownames(comm)
       samp2.name=(iCAMP::dist.3col(BC.rd[,,1,1]))[,1:2,drop=FALSE]
       BC.randm=lapply(1:(dim(BC.rd)[3]),
                          function(i)

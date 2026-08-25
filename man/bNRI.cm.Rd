@@ -66,10 +66,11 @@ Ning, D., Yuan, M., Wu, L., Zhang, Y., Guo, X., Zhou, X. et al. (2020). A quanti
 Daliang Ning
 }
 \note{
+Version 2: 2023.12.23, fix a bug when input comm is data.frame.
 Version 1: 2021.8.4
 }
 \seealso{
-\code{\link{bNRIn.p}}
+\code{\link{bNRIn.p}}, \code{\link{bNRI.big.cm}}
 }
 \examples{
 data("example.data")
@@ -89,5 +90,4 @@ bNRI=bNRI.cm(comm=comm, meta.group=meta.group,
              sig.index = "SES", unit.sum = NULL, correct.special = TRUE,
              detail.null = FALSE, special.method = "MPD")
 }
-
 \keyword{phylogenetic}

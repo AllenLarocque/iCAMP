@@ -175,7 +175,7 @@ RC.cm<-function(comm,rand=1000,na.zero=TRUE,nworker=4,
             idik=match(names(Sik)[i],rownames(com.rd))
             if(length(id.sp)==1){com.rd[idik,id.sp]=1}else{
               requireNamespace("DirichletReg")
-              com.rd[idik,id.sp]=DirichletReg::rdirichlet(n=1,alpha = meta.abk[id.sp])
+              com.rd[idik,id.sp]=DirichletReg::rdirichlet(n=1,alpha = meta.abk[id.sp]/sum(meta.abk[id.sp]))
             }
           }
         }

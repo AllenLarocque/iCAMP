@@ -80,7 +80,7 @@ NRI.cm<-function(comm, dis, meta.group=NULL, meta.spool=NULL,
       if(ncol(comj)>0)
       {
         spj.rd=sample(meta.spool[[j]],ncol(comj))
-        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=comj
+        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=as.matrix(comj)
       }
     }
     comr=comr[,colSums(comr)>0,drop=FALSE]
@@ -95,7 +95,8 @@ NRI.cm<-function(comm, dis, meta.group=NULL, meta.spool=NULL,
   gc()
   if(nworker==1)
   {
-    MPD.rand=lapply(1:rand,MPD.random,diss=dis,com=comm,weighted=weighted)
+    MPD.rand=lapply(1:rand,MPD.random,dis=dis,comms=comms,weighted=weighted,
+                    meta.group=meta.group,meta.spool=meta.spool,meta.spall=meta.spall)
   }else{
     requireNamespace("parallel")
     c1<-try(parallel::makeCluster(nworker,type="PSOCK"))

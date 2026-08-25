@@ -22,7 +22,8 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
           treepath.file="path.rda", pd.spname.file="pd.taxon.name.csv",
           pd.backingfile="pd.bin", pd.desc.file="pd.desc",
           taxo.metric="bray", transform.method=NULL,
-          logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"))
+          logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
+          temp.saved.file=NULL, temp.save=TRUE)
 }
 \arguments{
   \item{comm}{matrix or data.frame, community data, each row is a sample or site, each colname is a taxon (a species or OTU or ASV), thus rownames should be sample IDs, colnames should be taxa IDs.}
@@ -65,6 +66,8 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
   \item{logbase}{numeric, the logarithm base used when transform.method='log'.} 
   \item{dirichlet}{Logic. If TRUE, the taxonomic null model will use Dirichlet distribution to generate relative abundances in randomized community matrix. If the input community matrix has all row sums no more than 1, the function will automatically set dirichlet=TRUE. default is FALSE.}
   \item{d.cut.method}{character, to specify the method to calculate pd.cut from ds. 'maxpd' means based on maximum phylogenetic distance, pd.cut = (maxpd - ds)/2. 'maxdroot' means based on maximum distance to root, pd.cut = maxdroot - (ds/2), which is preferred if the tree only has one edge from the root.}
+  \item{temp.saved.file}{file path, to specify the special .rda file saving the intermediate results of this function. If the function was accidentally stopped when running for a large dataset, you can put the intermediate results '....iCAMP.TempSave...rda' here, so it will resume from the break point.}
+  \item{temp.save}{logic, whether to save the intermediate results. This is useful when running this function for a large dataset. If this was set as FALSE but the function was accidentally stopped, you will not have intermediate result file for temp.saved.file to resume.}
 }
 \details{
 This is the main function of iCAMP (Ning et al 2020). Most parameters can use the default settings. 
@@ -118,6 +121,7 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 13: 2023.9.4, add temp.saved.file and temp.save to keep intermediate results, so users can resume from unexpected break.
 Version 12: 2021.6.4, debug, fix 'arguments imply differing number of rows' issue.
 Version 11: 2021.6.4, add option d.cut.method to handle trees with only one edge from root.
 Version 10: 2021.4.17, add taxo.metric, transform.method, logbase, and dirichlet, to allow community data transform, dissimilar index other than Bray-Curtis, and relative abundances (values < 1) in the input community matrix.
@@ -154,7 +158,10 @@ tree=example.data$tree
   
   icamp.out=icamp.big(comm=comm,tree=tree,pd.wd=pd.wd,
                       rand=rand.time, nworker=nworker,
-                      bin.size.limit=bin.size.limit)
+                      bin.size.limit=bin.size.limit,
+                      output.wd=pd.wd,
+                      detail.save=FALSE,qp.save=FALSE,
+                      temp.save=FALSE)
   setwd(wd0)
 }
 }

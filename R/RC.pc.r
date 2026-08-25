@@ -121,7 +121,9 @@ RC.pc<-function(comm,rand=1000,na.zero=TRUE,nworker=4,
           id.sp<-sample(id,Si[i],replace=FALSE,prob=prob.sp)
           if(length(id.sp)==1){com.rd[i,id.sp]=1}else{
             requireNamespace("DirichletReg")
-            com.rd[i,id.sp]=DirichletReg::rdirichlet(n=1,alpha = prob.ab[id.sp])
+            #com.rd[i,id.sp]=DirichletReg::rdirichlet(n=1,alpha = prob.ab[id.sp])
+            # 2023.7.4 added /sum(prob.ab[id.sp])
+            com.rd[i,id.sp]=DirichletReg::rdirichlet(n=1,alpha = prob.ab[id.sp]/sum(prob.ab[id.sp]))
           }
         }
       }

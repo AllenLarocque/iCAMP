@@ -1,5 +1,6 @@
 qpen.test<-function(qpen.result,treat,rand.time=1000,
-                    between.group=FALSE,out.detail=TRUE,silent=FALSE)
+                    between.group=FALSE,out.detail=TRUE,silent=FALSE,
+                    qpn=NULL)
 {
   if(inherits(qpen.result,"list")){qpm=qpen.result$result}else{qpm=qpen.result}
   head(qpm)
@@ -33,8 +34,11 @@ qpen.test<-function(qpen.result,treat,rand.time=1000,
     rownames(out)=c()
     out
   }
-  qpn=c('Heterogeneous.Selection','Homogeneous.Selection',
-        'Dispersal.Limitation','Homogenizing.Dispersal','Undominated')
+  if(is.null(qpn))
+  {
+    qpn=c('Heterogeneous.Selection','Homogeneous.Selection',
+          'Dispersal.Limitation','Homogenizing.Dispersal','Undominated')
+  }
   qprt<-function(qpv,...)
   {
     out=rep(0,length(qpn))

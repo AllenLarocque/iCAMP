@@ -26,6 +26,7 @@ Return a list object, new matrixes with the same first two columns. Some message
 Daliang Ning
 }
 \note{
+Version 3: 2022.10.12, revised ckexm to avoid unnecessary warning.
 Version 2: 2020.8.19, add example.
 Version 1: 2018.10.20
 }

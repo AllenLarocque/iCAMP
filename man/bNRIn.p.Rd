@@ -11,7 +11,7 @@ bNRIn.p(comm, dis, nworker = 4, memo.size.GB = 50,
         weighted = c(TRUE, FALSE), rand = 1000, output.bMPD = c(FALSE, TRUE), 
         sig.index = c("SES", "Confidence", "RC", "bNRI"),
         unit.sum = NULL, correct.special = FALSE, detail.null = FALSE,
-        special.method = c("MPD", "MNTD", "both"),
+        special.method = c("MPD", "MNTD", "both", "Simple"),
         ses.cut = 1.96, rc.cut = 0.95, conf.cut = 0.975,
         dirichlet = FALSE)
 }

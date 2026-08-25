@@ -60,6 +60,8 @@ Kraft, N.J.B., Comita, L.S., Chase, J.M., Sanders, N.J., Swenson, N.G., Crist, T
 Daliang Ning
 }
 \note{
+Version 9: 2025.2.3, fix an error in confidence calculation when big.method is "loop". Found by Chen-feng Lin.
+Version 8: 2023.7.4, fix error when setting dirichlet=TRUE. 
 Version 7: 2021.4.18, fix the bug when detail.null=TRUE and comm has only two samples.
 Version 6: 2021.4.17, add taxo.metric, transform.method, logbase, and dirichlet, to allow community data transform, dissimilar index other than Bray-Curtis, and relative abundances (values < 1) in the input community matrix.
 Version 5: 2020.8.19, update help document, add example.

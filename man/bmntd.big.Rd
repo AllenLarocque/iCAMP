@@ -9,7 +9,8 @@ Calculates beta MNTD (beta mean nearest taxon distance, Webb et al 2008) for tax
 \usage{
 bmntd.big(comm, pd.desc = "pd.desc", pd.spname, pd.wd,
           spname.check = FALSE, abundance.weighted = TRUE,
-          exclude.conspecifics = FALSE, time.output = FALSE)
+          exclude.conspecifics = FALSE, time.output = FALSE,
+          unit.sum=NULL)
 }
 \arguments{
   \item{comm}{matrix or data.frame, community data matrix, rownames are sample names, colnames are taxa ids.}
@@ -20,6 +21,7 @@ bmntd.big(comm, pd.desc = "pd.desc", pd.spname, pd.wd,
   \item{abundance.weighted}{logic, whether weighted by species abundance, default is TRUE, means weighted.}
   \item{exclude.conspecifics}{logic, whether conspecific taxa in different communities be exclude from beta MNTD calculations, default is FALSE.}
   \item{time.output}{logic, whether to count calculation time, default is FALSE.}
+  \item{unit.sum}{NULL or a number or a nemeric vector. When unit.sum is not NULL and a beta diversity index is calculated for a bin, the taxa abundances will be divided by unit.sum to calculate the relative abundances. usually, unit.sum can be set as the sequencing depth in each sample. Default setting is NULL, means not to do this special transformation.} 
 }
 \details{
 beta mean nearest taxon distance for taxa in each pair of communities. Improved from 'comdistnt' in package 'picante'(Kembel et al 2010). This function adds bigmemory part (Kane et al 2013) to deal with large dataset.

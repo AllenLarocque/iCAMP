@@ -1,9 +1,9 @@
 bmntd.big<-function(comm, pd.desc="pd.desc", pd.spname, pd.wd,
                     spname.check=FALSE, abundance.weighted = TRUE,
-                    exclude.conspecifics = FALSE,time.output=FALSE)
+                    exclude.conspecifics = FALSE,time.output=FALSE,
+                    unit.sum=NULL)
 {
   requireNamespace("bigmemory")
-  
   if(spname.check)
   {
     check.sp=iCAMP::match.name(name.check = pd.spname,cn.list = list(comm=comm))
@@ -41,7 +41,12 @@ bmntd.big<-function(comm, pd.desc="pd.desc", pd.spname, pd.wd,
   time2=Sys.time()
   if(abundance.weighted)
   {
-    comm.p=comm/rowSums(comm)
+    if(is.null(unit.sum))
+    {
+      comm.p=comm/rowSums(comm)
+    }else{
+      comm.p=comm/unit.sum
+    }
     time3=Sys.time()
     res=as.matrix(comt) %*% (as.matrix(t(comm.p)))
     time4=Sys.time()

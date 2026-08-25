@@ -11,7 +11,7 @@ dniche(env, comm,
        method = c("ab.overlap", "niche.value", "prefer.overlap"),
        nworker = 4, memory.G = 50, out.dist = FALSE,
        bigmemo = TRUE, nd.wd = getwd(), nd.spname.file="nd.names.csv",
-       detail.file="ND.res.rda")
+       detail.file="ND.res.rda",overalldist=FALSE)
 }
 \arguments{
   \item{env}{matrix or data.frame, each row is a sample, each column is an environmental factor which may be important to represent the niche, thus rownames are sample IDs, and colnames are environmental factor names.}
@@ -24,6 +24,7 @@ dniche(env, comm,
   \item{nd.wd}{folder path, when bigmemo is TRUE, where the big matrixes are saved.}
   \item{nd.spname.file}{character, name of the file saving taxa IDs, which should be in exactly the same order as in the row names (and column names) of the big niche difference matrix, if bigmemo is TRUE. it should be a .csv file.}
   \item{detail.file}{character, name of the file saving all output information in R data format. it should be a .rda file.}
+  \item{overalldist}{logic, if TRUE, overall (named "ALL") niche distance will be calculated by counting in all environmental factors (standardized before calculation).}
 }
 \details{
 The method niche.value is to calculate niche difference as the absolute difference of niche values between each pair of species. The niche value of a species is calculated as abundance-weighted mean of each environmental factor as previously reported (Stegen et al 2012 ISME J). In the method ab.overlap, the abundance of each species along the gradient of an environment factor is estimated using the density function using Gaussian kernel with 512 points. Then, the niche difference between two species is calculated as the sum of absolute abundance difference at each point divided by the sum of the higher abundance at each point, like Ruzicka dissimilarity (weighted Jaccard). It is like 1 - niche overlap based on abundance profile overlap, thus called ab.overlap. The method prefer.overlap is very similar to ab.overlap, just one modification, i.e. the observed abundance of each species in each sample is divied by the total abundance of the species across all sample, to normalize the profile, before calcuating niche difference.
@@ -49,6 +50,8 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 6: 2024.12.24, add overalldist option.
+Version 5: 2022.12.12, fix out-of-memory issue if too many taxa.
 Version 4: 2022.5.29, if nd.wd does not exist, creat a folder as nd.wd.
 Version 3: 2020.9.1, add nd.spname.file and detail.file; remove setwd; change dontrun to donttest and revise save.wd in help doc.
 Version 2: 2020.8.18, add example.
@@ -71,16 +74,16 @@ niche.dif=dniche(env = env, comm = comm, method = "niche.value",
 # since big.memory need to specify a certain folder,
 # it is set as 'not test'.
 # but you may test the code on your computer after change the path for 'save.wd'.
-\donttest{
-  wd0=getwd()
-  save.wd=paste0(tempdir(),"/dnichewd")
-  # please change to the folder you want to save the big niche difference matrix.
+#\donttest{
+#  wd0=getwd()
+#  save.wd=paste0(tempdir(),"/dnichewd")
+#  # please change to the folder you want to save the big niche difference matrix.
   
-  nworker=2 # parallel computing thread number
-  niche.dif=dniche(env = env, comm = comm,
-                   method = "niche.value", nworker = nworker,
-                   out.dist=FALSE,bigmemo=TRUE,nd.wd = save.wd)
-  setwd(wd0)
-}
+#  nworker=2 # parallel computing thread number
+#  niche.dif=dniche(env = env, comm = comm,
+#                   method = "niche.value", nworker = nworker,
+#                   out.dist=FALSE,bigmemo=TRUE,nd.wd = save.wd)
+#  setwd(wd0)
+#}
 }
 \keyword{phylogenetic signal}

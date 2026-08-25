@@ -12,7 +12,8 @@ bNTI.big.cm(comm, meta.group = NULL, meta.spool = NULL,
             spname.check = TRUE, nworker = 4,
             memo.size.GB = 50, weighted = TRUE,
             exclude.consp = FALSE, rand = 1000,
-            output.dtail = FALSE, RC = FALSE, trace = TRUE)
+            output.dtail = FALSE, RC = FALSE,
+            trace = TRUE, unit.sum = NULL)
 }
 
 \arguments{
@@ -31,6 +32,7 @@ bNTI.big.cm(comm, meta.group = NULL, meta.spool = NULL,
   \item{output.dtail}{logic, if TRUE, the betaNTI, RC value, observed betaMNTD, all null betaMNTD values will all be output, if FALSE, only output betaNTI or RC.}
   \item{RC}{logic, whether to use modified RC merics to evaluate significance of betaMNTD insteal of betaNTI (standardized effect size).}
   \item{trace}{logic, whether to show the progress when the code is running.}
+  \item{unit.sum}{When a beta diversity index is calculated for a bin, the taxa abundances will be divided by unit.sum to calculate the relative abundances. usually, unit.sum can be set as the sequencing depth in each sample. Default setting is NULL, means not to do this special transformation.}
 }
 \details{
 This function is particularly designed for samples from different metacommunities. The null model "taxa shuffle" will be done under different metacommunities, separately (and independently). All other details are the same as the function bNTI.big.
@@ -58,6 +60,8 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 3: 2023.12.23, fix a bug when input comm is data.frame.
+Version 2: 2023.9.4, add unit.sum option.
 Version 1: 2021.8.2
 }
 \seealso{

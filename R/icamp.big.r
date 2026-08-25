@@ -14,7 +14,8 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
                     treepath.file="path.rda", pd.spname.file="pd.taxon.name.csv",
                     pd.backingfile="pd.bin", pd.desc.file="pd.desc",
                     taxo.metric="bray", transform.method=NULL,
-                    logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"))
+                    logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
+                    temp.saved.file=NULL,temp.save=TRUE)
 {
   # v20200725 add sig.index, conf.cut, detail.null
   # v20210417 add taxo.metric, transform.method, logbase, dirichlet
@@ -25,6 +26,19 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   {
     warning("The values in comm are less than 1, thus considered as proportional data, Dirichlet distribution is used to assign abundance in null model.")
     dirichlet=TRUE
+  }
+  if(!is.null(temp.saved.file)){tempsave=get(load(temp.saved.file)[1])}else{tempsave=list()}
+  timecodex=format(Sys.time(),"%Y%m%d%H%M%S")
+  TSX<-function(TSXN,...)
+  {
+    if(temp.save)
+    {
+      TSname=deparse(substitute(TSXN))
+      if(TSname %in% names(tempsave)){tempsave[[which(names(tempsave)==TSname)]]<-TSXN}else{tempsave[[length(tempsave)+1]]<-TSXN;names(tempsave)[length(tempsave)]=TSname}
+      save(tempsave,file = paste0(output.wd,"/",prefix,".iCAMP.TempSave.",timecodex,".rda"))
+      message("==== Temporarily saved ",TSname,". ",date())
+    }
+    tempsave
   }
   taxo.name=paste0(toupper(substr(taxo.metric,1,1)),substring(taxo.metric,2))
   
@@ -54,9 +68,12 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       pd.big$pd.file=pd.desc.file
       pd.big$pd.name.file=pd.spname.file
     }else{
-      pd.big=iCAMP::pdist.big(tree = tree, wd=pd.wd, nworker = nworker,
-                              treepath.file=treepath.file, pd.spname.file=pd.spname.file,
-                              pd.backingfile=pd.backingfile, pd.desc.file=pd.desc.file)
+      if(!is.null(tempsave$pd.big)){pd.big=tempsave$pd.big}else{
+        pd.big=iCAMP::pdist.big(tree = tree, wd=pd.wd, nworker = nworker,
+                                treepath.file=treepath.file, pd.spname.file=pd.spname.file,
+                                pd.backingfile=pd.backingfile, pd.desc.file=pd.desc.file)
+        tempsave=TSX(pd.big)
+      }
     }
     pd.desc=pd.big$pd.file
     pd.spname=pd.big$tip.label
@@ -69,8 +86,11 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   
   if(!is.rooted(tree))
   {
-    tree.rt=iCAMP::midpoint.root.big(tree, pd.desc=pd.desc, pd.spname=pd.spname,
-                                     pd.wd=pd.wd, nworker=nworker)
+    if(!is.null(tempsave$tree.rt)){tree.rt=tempsave$tree.rt}else{
+      tree.rt=iCAMP::midpoint.root.big(tree, pd.desc=pd.desc, pd.spname=pd.spname,
+                                       pd.wd=pd.wd, nworker=nworker)
+      tempsave=TSX(tree.rt)
+    }
     tree=tree.rt$tree
     maxpd=tree.rt$max.pd
     if(rtree.save) ape::write.tree(tree,file = paste0(output.wd,"/",prefix,".tree.rooted.nwk"))
@@ -89,11 +109,14 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   if(is.na(pd.cut)){d.cut=NULL}else{d.cut=pd.cut}
   
   message("----------Now binning-----------------",date())
-  taxabin3=iCAMP::taxa.binphy.big(tree,pd.desc=pd.desc, pd.spname=pd.spname,
-                                  pd.wd=pd.wd,outgroup.tip=NA,outgroup.rm=TRUE,
-                                  d.cut=d.cut,ds=ds,bin.size.limit=bin.size.limit,
-                                  nworker=nworker,d.cut.method=d.cut.method)
-  gc()
+  if(!is.null(tempsave$taxabin3)){taxabin3=tempsave$taxabin3}else{
+    taxabin3=iCAMP::taxa.binphy.big(tree,pd.desc=pd.desc, pd.spname=pd.spname,
+                                    pd.wd=pd.wd,outgroup.tip=NA,outgroup.rm=TRUE,
+                                    d.cut=d.cut,ds=ds,bin.size.limit=bin.size.limit,
+                                    nworker=nworker,d.cut.method=d.cut.method)
+    gc()
+    tempsave=TSX(taxabin3)
+  }
   if(detail.save)
   {
     detail=list()
@@ -170,19 +193,23 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   {
     if(phylo.metric %in% c("bMPD","bNRI","both"))
     {
-      bNRI1res=lapply(1:bin.num,
-                      function(i)
-                      {
-                        message("----bMPD bin i=",i," in ",bin.num," ---- ",date())
-                        pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
-                        rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
-                        iCAMP::bNRIn.p(comm = com.bin[[i]], dis = pd.bini,nworker=nworker,
+      if(is.null(tempsave$bNRI1res)){bNRI1res=list()}else{bNRI1res=tempsave$bNRI1res}
+      if(length(bNRI1res)<bin.num)
+      {
+        for(i in (length(bNRI1res)+1):bin.num)
+        {
+          message("----bMPD bin i=",i," in ",bin.num," ---- ",date())
+          pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
+          rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
+          bNRI1res[[i]]=iCAMP::bNRIn.p(comm = com.bin[[i]], dis = pd.bini,nworker=nworker,
                                        memo.size.GB = memory.G,weighted = TRUE,rand = rand,
                                        sig.index=sig.ind.phy,unit.sum = unit.sum,output.bMPD = detail.null,
                                        correct.special = correct.special,detail.null=detail.null,
                                        special.method=special.method.bNRI,ses.cut=ses.cut,
                                        rc.cut=rc.cut,conf.cut=conf.cut,dirichlet=dirichlet)
-                      })
+          tempsave=TSX(bNRI1res)
+        }
+      }
       gc()
       bNRI1=lapply(1:length(bNRI1res),function(i){bNRI1res[[i]]$index})
       if(sig.ind.phy=="Confidence"){objname="CbMPDi"}else if(sig.ind.phy=="SES"){objname="bNRIi"}else if(sig.ind.phy=="RC"){objname="RCbMPDi"}
@@ -207,19 +234,23 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
     }
     if(phylo.metric %in% c("bMNTD","bNTI","both"))
     {
-      bNTI1res=lapply(1:bin.num,
-                      function(i)
-                      {
-                        message("----bMNTD bin i=",i," in ",bin.num," ---- ",date())
-                        pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
-                        rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
-                        iCAMP::bNTIn.p(comm=com.bin[[i]],dis=pd.bini,nworker = nworker,
+      if(is.null(tempsave$bNTI1res)){bNTI1res=list()}else{bNTI1res=tempsave$bNTI1res}
+      if(length(bNTI1res)<bin.num)
+      {
+        for(i in (length(bNTI1res)+1):bin.num)
+        {
+          message("----bMNTD bin i=",i," in ",bin.num," ---- ",date())
+          pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
+          rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
+          bNTI1res[[i]]=iCAMP::bNTIn.p(comm=com.bin[[i]],dis=pd.bini,nworker = nworker,
                                        memo.size.GB = memory.G,weighted = TRUE,rand = rand,
                                        sig.index=sig.ind.phy,unit.sum=unit.sum,output.bMNTD = detail.null,
                                        correct.special = correct.special,detail.null=detail.null,
                                        special.method=special.method.bNTI,ses.cut=ses.cut,
                                        rc.cut=rc.cut,conf.cut=conf.cut,dirichlet=dirichlet)
-                      })
+          tempsave=TSX(bNTI1res)
+        }
+      }
       gc()
       bNTI1=lapply(1:length(bNTI1res),function(i){bNTI1res[[i]]$index})
       if(sig.ind.phy=="Confidence"){objname="CbMNTDi"}else if(sig.ind.phy=="SES"){objname="bNTIi"}else if(sig.ind.phy=="RC"){objname="RCbMNTDi"}
@@ -246,13 +277,16 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   {
     if(phylo.metric %in% c("bMPD","bNRI","both"))
     {
-      bNRI2res=iCAMP::bNRI.bin.big(comm = comm,pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
+      if(!is.null(tempsave$bNRI2res)){bNRI2res=tempsave$bNRI2res}else{
+        bNRI2res=iCAMP::bNRI.bin.big(comm = comm,pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
                                    pdid.bin=pdid.bin, sp.bin = sp.bin,spname.check = FALSE,
                                    nworker = nworker,memo.size.GB = memory.G,weighted = TRUE,
                                    rand = rand,output.bMPD=detail.null,sig.index=sig.ind.phy,
                                    unit.sum=unit.sum,correct.special = correct.special,
                                    detail.null=detail.null,special.method=special.method.bNRI,
                                    ses.cut=ses.cut,rc.cut=rc.cut,conf.cut=conf.cut,dirichlet=dirichlet)
+        tempsave=TSX(bNRI2res)
+      }
       if(sig.ind.phy=="Confidence"){objname="CbMPDa"}else if(sig.ind.phy=="SES"){objname="bNRIa"}else if(sig.ind.phy=="RC"){objname="RCbMPDa"}
       bNRI2.m=iCAMP::dist.bin.3col(bNRI2res$index, obj.name = objname)
       if(detail.save){detail$SigbMPDa=bNRI2.m}
@@ -266,13 +300,16 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
     
     if(phylo.metric %in% c("bMNTD","bNTI","both"))
     {
-      bNTI2res=iCAMP::bNTI.bin.big(comm = comm, pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
-                                   pdid.bin=pdid.bin, sp.bin = sp.bin,spname.check = FALSE,
-                                   nworker = nworker,memo.size.GB = memory.G,weighted = TRUE,
-                                   rand = rand,output.bMNTD = detail.null,sig.index=sig.ind.phy,
-                                   unit.sum=unit.sum,correct.special = correct.special,
-                                   detail.null=detail.null,special.method=special.method.bNTI,
-                                   ses.cut=ses.cut,rc.cut=rc.cut,conf.cut=conf.cut,dirichlet=dirichlet)
+      if(!is.null(tempsave$bNTI2res)){bNTI2res=tempsave$bNTI2res}else{
+        bNTI2res=iCAMP::bNTI.bin.big(comm = comm, pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
+                                     pdid.bin=pdid.bin, sp.bin = sp.bin,spname.check = FALSE,
+                                     nworker = nworker,memo.size.GB = memory.G,weighted = TRUE,
+                                     rand = rand,output.bMNTD = detail.null,sig.index=sig.ind.phy,
+                                     unit.sum=unit.sum,correct.special = correct.special,
+                                     detail.null=detail.null,special.method=special.method.bNTI,
+                                     ses.cut=ses.cut,rc.cut=rc.cut,conf.cut=conf.cut,dirichlet=dirichlet)
+        tempsave=TSX(bNTI2res)
+      }
       if(sig.ind.phy=="Confidence"){objname="CbMNTDa"}else if(sig.ind.phy=="SES"){objname="bNTIa"}else if(sig.ind.phy=="RC"){objname="RCbMNTDa"}
       bNTI2.m=iCAMP::dist.bin.3col(bNTI2res$index, obj.name = objname)
       if(detail.save){detail$SigbMNTDa=bNTI2.m}
@@ -284,23 +321,26 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       }
     }
   }
-  
   ###################################################################
   #####################################################################  
   if(taxa.rand.scale %in% c("within.bin","both"))
   {
-    RC1res=lapply(1:bin.num,
-                  function(i)
-                  {
-                    message("----Bray bin i=",i," in ",bin.num," ---- ",date())
-                    iCAMP::RC.pc(comm = com.bin[[i]],rand = rand,
+    if(is.null(tempsave$RC1res)){RC1res=list()}else{RC1res=tempsave$RC1res}
+    if(length(RC1res)<bin.num)
+    {
+      for(i in (length(RC1res)+1):bin.num)
+      {
+        message("----Bray bin i=",i," in ",bin.num," ---- ",date())
+        RC1res[[i]]=iCAMP::RC.pc(comm = com.bin[[i]],rand = rand,
                                  nworker = nworker,memory.G = memory.G,
                                  unit.sum = unit.sum,meta.ab = meta.ab,
                                  sig.index=sig.ind.tax,detail.null=detail.null,
                                  output.bray=detail.null,taxo.metric=taxo.metric,
                                  transform.method=transform.method, logbase=logbase,
                                  dirichlet=dirichlet)
-                  })
+        tempsave=TSX(RC1res)
+      }
+    }
     RC1=lapply(1:length(RC1res),function(i){RC1res[[i]]$index})
     if(sig.ind.tax=="Confidence"){objname=paste0("C",taxo.metric,"i")}else if(sig.ind.tax=="SES"){objname=paste0("SES",taxo.metric,"i")}else if(sig.ind.tax=="RC"){objname=paste0("RC",taxo.metric,"i")}
     RC1.m=iCAMP::dist.bin.3col(RC1, obj.name = objname)
@@ -315,14 +355,17 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   }
   if(taxa.rand.scale %in% c("across.all","both"))
   {
-    if(nrow(comm)>150){big.method="loop"}else{big.method="no"}
-    RC2res=iCAMP::RC.bin.bigc(com = comm,sp.bin = sp.bin,rand = rand,nworker = nworker,
-                              memory.G = memory.G,big.method = big.method,
-                              unit.sum = unit.sum,meta.ab=meta.ab,
-                              sig.index=sig.ind.tax,detail.null=detail.null,
-                              output.bray=detail.null,taxo.metric=taxo.metric,
-                              transform.method=transform.method, logbase=logbase,
-                              dirichlet=dirichlet)
+    if(!is.null(tempsave$RC2res)){RC2res=tempsave$RC2res}else{
+      if(nrow(comm)>150){big.method="loop"}else{big.method="no"}
+      RC2res=iCAMP::RC.bin.bigc(com = comm,sp.bin = sp.bin,rand = rand,nworker = nworker,
+                                memory.G = memory.G,big.method = big.method,
+                                unit.sum = unit.sum,meta.ab=meta.ab,
+                                sig.index=sig.ind.tax,detail.null=detail.null,
+                                output.bray=detail.null,taxo.metric=taxo.metric,
+                                transform.method=transform.method, logbase=logbase,
+                                dirichlet=dirichlet)
+      tempsave=TSX(RC2res)
+    }
     if(sig.ind.tax=="Confidence"){objname=paste0("C",taxo.metric,"a")}else if(sig.ind.tax=="SES"){objname=paste0("SES",taxo.metric,"a")}else if(sig.ind.tax=="RC"){objname=paste0("RC",taxo.metric,"a")}
     RC2.m=iCAMP::dist.bin.3col(RC2res$index, obj.name = objname)
     if(detail.save){detail$SigBCa=RC2.m}
@@ -345,8 +388,6 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   
   # 8 # processes
   # 8.1 # identify governing processes
-  
-  
   if(sig.ind.phy=="SES"){sig.phy.cut<-sig.phy2.cut<-ses.cut}else if(sig.ind.phy=="RC"){sig.phy.cut<-sig.phy2.cut<-rc.cut}else{sig.phy.cut<-sig.phy2.cut<-conf.cut}
   if(sig.ind.tax=="SES"){sig.tax.cut<-ses.cut}else if(sig.ind.tax=="RC"){sig.tax.cut<-rc.cut}else{sig.tax.cut<-conf.cut}  
   res=integer(0)

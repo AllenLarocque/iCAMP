@@ -36,26 +36,39 @@ change.sigindex<-function(icamp.output,sig.index=c("Confidence","SES.RC","SES","
     
     sigindexn<-function(obs,rands,special3=NULL,sig.ind,obj.name)
     {
-      randar=sapply(1:length(rands),function(i){as.matrix(rands[[i]][,3:ncol(rands[[i]]),drop=FALSE])},simplify = "array")
-      obsa=sapply(1:length(obs),function(i){iCAMP::dist.3col(obs[[i]])[,3]})
+      randar=lapply(1:length(rands),function(i){as.matrix(rands[[i]][,3:ncol(rands[[i]]),drop=FALSE])})
+      obsa=lapply(1:length(obs),function(i){iCAMP::dist.3col(obs[[i]])[,3]})
       
       if(sig.ind=="RC")
       {
-        obsar=sapply(1:ncol(obsa),function(i){matrix(obsa[,i],nrow=nrow(randar),ncol=ncol(randar))},simplify = "array")
-        alpha1=apply(obsar==randar,c(1,3),sum)
-        alpha=apply(obsar>randar,c(1,3),sum)
-        alpha=(alpha+0.5*alpha1)/(dim(randar)[2])
-        out1=2*alpha-1
+        obsar=lapply(1:length(obsa),function(i){matrix(obsa[[i]],nrow=nrow(randar[[i]]),ncol=ncol(randar[[i]]))})
+        out1=sapply(1:length(obsar),
+                    function(i)
+                    {
+                      alpha1=rowSums(obsar[[i]]==randar[[i]])
+                      alpha2=rowSums(obsar[[i]]>randar[[i]])
+                      alpha=(alpha2+0.5*alpha1)/(ncol(randar[[i]]))
+                      2*alpha-1
+                    })
         if(!is.null(special3)){special=special3$special.rc}
       }else if(sig.ind=="SES"){
-        out1=(obsa-apply(randar,c(1,3),mean))/(apply(randar,c(1,3),stats::sd))
+        #out1=(obsa-apply(randar,c(1,3),mean))/(apply(randar,c(1,3),stats::sd))
+        out1=sapply(1:length(randar),
+                    function(i)
+                    {
+                      (obsa[[i]]-rowMeans(randar[[i]]))/apply(randar[[i]],1,stats::sd)
+                    })
         if(!is.null(special3)){special=special3$special.ses}
       }else if(sig.ind=="Confidence"){
-        obsar=sapply(1:ncol(obsa),function(i){matrix(obsa[,i],nrow=nrow(randar),ncol=ncol(randar))},simplify = "array")
-        alpha=(apply(obsar>randar,c(1,3),sum))/(dim(randar)[2])
-        alpha2=(apply(obsar<randar,c(1,3),sum))/(dim(randar)[2])
-        alpha[which(alpha2>alpha, arr.ind = TRUE)]=-alpha2[which(alpha2>alpha, arr.ind = TRUE)]
-        out1=alpha
+        obsar=lapply(1:length(obsa),function(i){matrix(obsa[[i]],nrow=nrow(randar[[i]]),ncol=ncol(randar[[i]]))})
+        out1=sapply(1:length(obsar),
+                    function(i)
+                    {
+                      alpha=(rowSums(obsar[[i]]>randar[[i]]))/(ncol(randar[[i]]))
+                      alpha2=(rowSums(obsar[[i]]<randar[[i]]))/(ncol(randar[[i]]))
+                      alpha[which(alpha2>alpha)]=-alpha2[which(alpha2>alpha)]
+                      alpha
+                    })
         if(!is.null(special3)){special=special3$special.conf}
       }
       colnames(out1)=paste0(obj.name,".bin",1:ncol(out1))

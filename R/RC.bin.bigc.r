@@ -133,7 +133,7 @@ RC.bin.bigc<-function(com,sp.bin,rand=1000,na.zero=TRUE,
           id.sp<-sample(id,Si[i],replace=FALSE,prob=prob.sp)
           if(length(id.sp)==1){com.rd[i,id.sp]=1}else{
             requireNamespace("DirichletReg")
-            com.rd[i,id.sp]=DirichletReg::rdirichlet(n=1,alpha = prob.ab[id.sp])
+            com.rd[i,id.sp]=DirichletReg::rdirichlet(n=1,alpha = prob.ab[id.sp]/sum(prob.ab[id.sp]))
           }
         }
       }
@@ -190,6 +190,7 @@ RC.bin.bigc<-function(com,sp.bin,rand=1000,na.zero=TRUE,
       }
     }else if(sig.index=="Confidence"){
       alpha[which(alpha2>alpha, arr.ind = TRUE)]=-alpha2[which(alpha2>alpha, arr.ind = TRUE)]
+      alpha=alpha/rand # need to add this line. This error was found by Chen-feng Lin. Fixed on 2025.2.3
       colnames(alpha)<-rownames(alpha)<-rownames(com)
       result=lapply(1:(dim(alpha)[3]),function(i){alpha[,,i]})
     }else if(sig.index=="SES"){

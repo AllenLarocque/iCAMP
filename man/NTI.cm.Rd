@@ -1,11 +1,10 @@
 \name{NTI.cm}
 \alias{NTI.cm}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Calculate nearest taxon index (NTI) under multiple metacommunities
 }
 \description{
-Calculate nearest taxon index (NTI) of each sample with parallel computing. his function can deal with local communities under different metacommunities (regional pools).
+Calculate nearest taxon index (NTI) of each sample with parallel computing. This function can deal with local communities under different metacommunities (regional pools).
 }
 \usage{
 NTI.cm(comm, dis, meta.group = NULL,
@@ -52,6 +51,7 @@ Ning, D., Yuan, M., Wu, L., Zhang, Y., Guo, X., Zhou, X. et al. (2020). A quanti
 Daliang Ning
 }
 \note{
+Version 2: 2023.12.23, fix a bug when input comm is data.frame.
 Version 1: 2021.8.4
 }
 \seealso{

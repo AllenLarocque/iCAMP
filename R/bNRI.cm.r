@@ -78,6 +78,7 @@ bNRI.cm<-function(comm, dis, nworker=4, memo.size.GB=50,
     if(is.null(meta.spool))
     {
       meta.spool=lapply(1:nrow(meta.frequency),function(i){colnames(meta.frequency)[which(meta.frequency[i,]>0)]})
+      names(meta.spool)=rownames(meta.frequency)
     }else{
       if(sum(sapply(1:nrow(meta.frequency),function(i){sum(!(colnames(meta.frequency)[which(meta.frequency[i,]>0)] %in% meta.spool[[i]]))}))>0)
       {
@@ -154,7 +155,7 @@ bNRI.cm<-function(comm, dis, nworker=4, memo.size.GB=50,
       if(ncol(comj)>0)
       {
         spj.rd=sample(meta.spool[[j]],ncol(comj))
-        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=comj
+        comr[match(rownames(comj),rownames(comr)),match(spj.rd,colnames(comr))]=as.matrix(comj)
       }
     }
     comr=comr[,colSums(comr)>0,drop=FALSE]

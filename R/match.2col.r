@@ -14,7 +14,9 @@ match.2col<-function(check.list,name.check=NULL,rerank=TRUE,silent=FALSE)
   }
   
   if(!is.null(name.check)){name.check=as.matrix(name.check);nck2c=name.check}else{nck2c=as.matrix(check.list[[1]][,1:2])}
-  ckexm=sapply(1:length(check.list),function(i){sum(nck2c[,1]!=as.vector(check.list[[i]][,1]))+sum(nck2c[,2]!=as.vector(check.list[[i]][,2]))})
+  #ckexm=sapply(1:length(check.list),function(i){sum(nck2c[,1]!=as.vector(check.list[[i]][,1]))+sum(nck2c[,2]!=as.vector(check.list[[i]][,2]))})
+  ckexm=sapply(1:length(check.list),function(i){if(nrow(nck2c)!=nrow(check.list[[i]])){outx=999}else{outx=sum(nck2c[,1]!=as.vector(check.list[[i]][,1]))+sum(nck2c[,2]!=as.vector(check.list[[i]][,2]))};outx})
+  # revised on 2022.10.12 to avoid unnecessary warning.
   if(sum(ckexm)==0 & (!rerank)){
     if(!silent){message("All match very well. Nothing needs change.")}
     res=check.list

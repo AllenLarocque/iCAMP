@@ -44,13 +44,30 @@ Version 1.5.9(20220421): fix error in function bNTI.bin.cm.
 Version 1.5.10(20220425): correct parallel thread number in examples.
 Version 1.5.11(20220426): fix error in special cases in fucntion bNTI.bin.cm.
 Version 1.5.12(20220529): fix warnings due to working directory issues of some examples in help documents.
+Version 1.5.13(20221212): fix error in functions icamp.bins and dniche.
+Version 1.6.1(20230427): add function big.mantel.correlog for Mantel Correlogram and stepwise Mantel test of big data.
+Version 1.6.2(20230704): fix error when setting dirichlet=TRUE in functions related to RC index. 
+Version 1.6.3(20230904): add bmpd.big, mntd.big, mpd.big, NRI.cm.big, NTI.cm.big, and bNRI.big.cm, to calculate corresponding indexes for big data.
+Version 1.6.4(20230904): add temp.saved.file and temp.save to icamp.big, icamp.cm, and icamp.cm2, to load or save intermediate results, so users can resume from unexpected break.
+Version 1.6.5 (20231223): fix a bug when input comm is data.frame in the functions bNRI.cm, bNRI.big.cm, bNRI.bin.cm, bNTI.cm, bNTI.big.cm, bNTI.bin.cm, NRI.cm, NRI.cm.big, NTI.com, and NTI.cm.big.
+Version 1.6.6 (20241126): revise icamp.boot to rank treatments according to the order of levels.
+Version 1.6.7 (20241128): revise change.sigindex to allow input has different randomization times in different bins.
+Version 1.7.1 (20241224): add functions metaset and taxa.binphy.big.cm.
+Version 1.7.2 (20250110): improve taxa.binphy.big.cm.
+Version 1.7.3 (20250111): improve taxa.binphy.big.cm.
+Version 1.8.1 (20250203): fix an error in confidence calculation in functions RC.bin.bigc and RC.bin.cm.
+Version 1.8.2 (20250930): fix error in metaset, NRI.cm, and RC.bin.cm, which may affect icamp.cm.
+Version 1.8.3 (20260801): some minor changes before submitting to CRAN.
+Version 1.8.4 (20260802): some minor correction for option meta.spool in some .cm functions.
+Version 1.8.5 (20260812): build with R-4.6.1.
+Version 1.8.6 (20260825): edit description file to submit to CRAN.
 }
 \details{
 \tabular{ll}{
 Package: \tab iCAMP\cr
 Type: \tab Package\cr
-Version: \tab 1.5.12\cr
-Date: \tab 2022-5-29\cr
+Version: \tab 1.8.6\cr
+Date: \tab 2026-8-25\cr
 License: \tab GPL-2\cr
 }
 }
@@ -59,6 +76,8 @@ Daliang Ning <ningdaliang@ou.edu>
 }
 \references{
 Ning, D., Yuan, M., Wu, L., Zhang, Y., Guo, X., Zhou, X. et al. (2020). A quantitative framework reveals ecological drivers of grassland microbial community assembly in response to warming. Nature Communications, 11, 4717.
+
+Ning, D., Wang, Y., Fan, Y. et al. (2024) Environmental stress mediates groundwater microbial community assembly. Nature Microbiology, 9, 490-501.
 
 Burns, A.R., Stephens, W.Z., Stagaman, K., Wong, S., Rawls, J.F., Guillemin, K. et al. (2016). Contribution of neutral processes to the assembly of gut microbial communities in the zebrafish over host development. Isme Journal, 10, 655-664.
 
@@ -89,7 +108,10 @@ tree=example.data$tree
   
   icamp.out=icamp.big(comm=comm,tree=tree,pd.wd=save.wd,
                       rand=rand.time, nworker=nworker,
-                      bin.size.limit=bin.size.limit)
+                      bin.size.limit=bin.size.limit,
+                      output.wd=save.wd,
+                      detail.save=FALSE,qp.save=FALSE,
+                      temp.save=FALSE)
   setwd(wd0)
 }
 }

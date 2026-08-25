@@ -9,7 +9,7 @@ Bootstrapping analysis of the results from QPEN (quantifying assembly processes 
 \usage{
 qpen.test(qpen.result, treat, rand.time = 1000,
           between.group = FALSE, out.detail = TRUE,
-          silent = FALSE)
+          silent = FALSE, qpn=NULL)
 }
 \arguments{
   \item{qpen.result}{the output of the function 'qpen', or the element 'result' (data.frame) in qpen output.}
@@ -18,6 +18,7 @@ qpen.test(qpen.result, treat, rand.time = 1000,
   \item{between.group}{logic. if True, the turnovers between each pair of treatments will also be calculated as a group.}
   \item{out.detail}{logic. if True, the 'qpen' results and the bootstrapping results in each group will also be output.}
   \item{silent}{logic. if FALSE, some messages will show during calculation.}
+  \item{qpn}{character vector, specify the process names in the qpen.result. if NULL, default process names will be used.}
 }
 \details{
 Basically use bootstrapping of samples to estimate the variation of each index's mean and relative importance of each process in each group, as well as the effect size and signficance of the difference between different groups.
@@ -41,6 +42,7 @@ Stegen, J.C., Lin, X., Fredrickson, J.K. & Konopka, A.E. (2015). Estimating and 
 Daliang Ning
 }
 \note{
+Version 3: 2022.9.22 add option qpn to specify the process names in qpen.result, so the output of qpen in previous versions can be used in this function.
 Version 2: 2021.6.9 speed up transformation for a huge number of comparisons by using package data.table.
 Version 1: 2021.4.15 include the function into package iCAMP.
 }

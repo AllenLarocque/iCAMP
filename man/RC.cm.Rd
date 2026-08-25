@@ -58,6 +58,7 @@ Kraft, N.J.B., Comita, L.S., Chase, J.M., Sanders, N.J., Swenson, N.G., Crist, T
 Daliang Ning
 }
 \note{
+Version 2: 2023.7.4, fix error when setting dirichlet=TRUE. 
 Version 1: 2021.8.2
 }
 \seealso{

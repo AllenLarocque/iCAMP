@@ -5,7 +5,7 @@ icamp.boot<-function(icamp.result,treat,rand.time=1000,
   # 1 # match ID
   res=icamp.result
   treat=treat[which(rownames(treat) %in% as.vector(as.matrix(res[,1:2]))),1,drop=FALSE]
-  trt.lev=unique(treat[,1])
+  if(is.factor(treat[,1])){trt.lev=levels(treat[,1]);trt.lev=trt.lev[which(trt.lev %in% treat[,1])]}else{trt.lev=unique(treat[,1])}
   
   # 2 # importance in each group
   procn=colnames(res[3:ncol(res)])

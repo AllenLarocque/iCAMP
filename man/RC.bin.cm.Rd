@@ -61,6 +61,8 @@ Kraft, N.J.B., Comita, L.S., Chase, J.M., Sanders, N.J., Swenson, N.G., Crist, T
 Daliang Ning
 }
 \note{
+Version 3: 2025.2.3, fix an error in confidence calculation when big.method is "loop". Found by Chen-feng Lin.
+Version 2: 2023.7.4, fix error when setting dirichlet=TRUE. 
 Version 1: 2021.8.4
 }
 \seealso{

@@ -2,7 +2,7 @@ bNRIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
                   weighted=c(TRUE,FALSE),rand=1000,output.bMPD=c(FALSE,TRUE),
                   sig.index=c("SES","Confidence","RC","bNRI"),unit.sum=NULL,
                   correct.special=FALSE,detail.null=FALSE,
-                  special.method=c("MPD","MNTD","both"),
+                  special.method=c("MPD","MNTD","both","Simple"),
                   ses.cut=1.96,rc.cut=0.95,conf.cut=0.975,
                   dirichlet = FALSE)
 {
@@ -99,115 +99,149 @@ bNRIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
   {
     # some special cases
     message("Now fixing special cases. Begin at ",date(),". Please wait...")
-    sdm=(apply(bMPD.rand,c(1,2),stats::sd))
-    diag(sdm)<-NA
-    if(detail.null){special.ses=result;special.ses[]=0;special.rc<-special.conf<-special.ses}
-    if(sum(sdm==0,na.rm = TRUE)>0)
+    if(special.method[1]=="Simple")
     {
-      rownames(sdm)<-colnames(sdm)<-rownames(bMPD.obs)
-      sdc=dist.3col(sdm)
-      sdc0=sdc[which(sdc[,3]==0),,drop=FALSE]
-      samp.sd0=unique(as.vector(as.matrix(sdc0[,1:2])))
-      samp0=rownames(comm)[which(rowSums(comm)==0)]
-      samp.ck=setdiff(samp.sd0,samp0)
-      if(length(samp.ck)>0)
+      id.zerosum=which(rowSums(comm)==0)
+      if(length(id.zerosum)>0)
       {
-        comm.ck=comm[which(rownames(comm) %in% samp.ck),,drop=FALSE]
-        samp.sg=character(0)
-        if(detail.null)
+        id.nosing=which(rowSums(comm)>1)
+        if(sig.index %in% c("RC","Confidence"))
         {
-          samp.sg.ses<-samp.sg.rc<-samp.sg.conf<-character(0)
-          sig.nti="all"
-        }else{
-          if(sig.index %in% c("bNRI","SES")){sig.nti="SES";nti.cut=ses.cut}else if(sig.index=="RC"){sig.nti="RC";nti.cut=rc.cut}else if(sig.index=="Confidence"){sig.nti="Confidence";nti.cut=conf.cut}
+          result[id.zerosum,id.nosing]=1.1
+          result[id.nosing,id.zerosum]=1.1
+        }else if(sig.index %in% c("SES","bNRI")){
+          result[id.zerosum,id.nosing]=99
+          result[id.nosing,id.zerosum]=99
         }
-        if(special.method[1] %in% c("MNTD","NTI","both"))
-        {
-          nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = dis, nworker = nworker,
-                       memo.size.GB = memo.size.GB,weighted = weighted,
-                       rand = rand,output.MNTD = FALSE,sig.index=sig.nti)
-          if(detail.null)
-          {
-            samp.sg.ses=c(samp.sg.ses,rownames(nti.ck$SES)[which(abs(nti.ck$SES[,1])>ses.cut)])
-            samp.sg.rc=c(samp.sg.rc,rownames(nti.ck$RC)[which(abs(nti.ck$RC[,1])>rc.cut)])
-            samp.sg.conf=c(samp.sg.rc,rownames(nti.ck$Confidence)[which(abs(nti.ck$Confidence[,1])>conf.cut)])
-          }else{
-            samp.sg=c(samp.sg,rownames(nti.ck)[which(abs(nti.ck[,1])>nti.cut)])
-          }
-        }
-        
-        if(special.method[1] %in% c("MPD","NRI","both"))
-        {
-          nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = dis, nworker = nworker,
-                       memo.size.GB = memo.size.GB,weighted = weighted,
-                       rand = rand,output.MPD = FALSE,sig.index = sig.nti)
-          if(detail.null)
-          {
-            samp.sg.ses=c(samp.sg.ses,rownames(nri.ck$SES)[which(abs(nri.ck$SES[,1])>ses.cut)])
-            samp.sg.rc=c(samp.sg.rc,rownames(nri.ck$RC)[which(abs(nri.ck$RC[,1])>rc.cut)])
-            samp.sg.conf=c(samp.sg.rc,rownames(nri.ck$Confidence)[which(abs(nri.ck$Confidence[,1])>conf.cut)])
-          }else{
-            samp.sg=c(samp.sg,rownames(nri.ck)[which(abs(nri.ck[,1])>nti.cut)])
-          }
-        }
-        
-        if(detail.null)
-        {
-          if(sig.index %in% c("bNRI","SES")){samp.sg=samp.sg.ses}else if(sig.index=="RC"){samp.sg=samp.sg.rc}else if(sig.index=="Confidence"){samp.sg=samp.sg.conf}
-          samp.sg.sum=length(samp.sg.ses)+length(samp.sg.rc)+length(samp.sg.conf)
-        }else{samp.sg.sum=0}
-        
-      }else{samp.sg=character(0);samp.sg.sum=0}
-      
-      samp1.id=which(rowSums(comm>0)==1)
-      
-      if(length(samp1.id)>0 | length(samp.sg)>0 | samp.sg.sum>0)
+      }
+      id.singsp=which(rowSums(comm>0)==1)
+      if(length(id.singsp)>1)
       {
-        rcm=(iCAMP::RC.pc(comm=comm,rand=rand,na.zero=TRUE,nworker=nworker,
-                          memory.G=memo.size.GB,weighted=weighted,
-                          unit.sum=unit.sum,silent=TRUE,dirichlet = dirichlet))$index
-        
-        if(length(samp1.id)>0)
+        requireNamespace("vegan")
+        BCb=as.matrix(vegan::vegdist(comm,method = "euclidean",binary = TRUE))
+        id.same=which(BCb==0,arr.ind = TRUE)
+        id.samesp=id.same[which((id.same[,1] %in% id.singsp) & (id.same[,2] %in% id.singsp) & (id.same[,1]!=id.same[,2])),,drop=FALSE]
+        if(nrow(id.samesp)>0)
         {
-          requireNamespace("vegan")
-          BCm=as.matrix(vegan::vegdist(comm,method = "euclidean",binary = TRUE))
-          diag(BCm)=NA
-          id.samesp=which(BCm==0,arr.ind = TRUE)
-          id.same1=id.samesp[which((id.samesp[,1] %in% samp1.id)&(id.samesp[,2] %in% samp1.id)),,drop=FALSE]
-          
           if(sig.index %in% c("RC","Confidence"))
           {
-            result[id.same1]=(1-(2*(rcm[id.same1]<=0)))*1.1
-          }else if(sig.index %in% c("SES","bNTI")){
-            result[id.same1]=(1-(2*(rcm[id.same1]<=0)))*99
+            result[id.samesp]=-1.1
+          }else if(sig.index %in% c("SES","bNRI")){
+            result[id.samesp]=-99
+          }
+        }
+      }
+    }else{
+      sdm=(apply(bMPD.rand,c(1,2),stats::sd))
+      diag(sdm)<-NA
+      if(detail.null){special.ses=result;special.ses[]=0;special.rc<-special.conf<-special.ses}
+      if(sum(sdm==0,na.rm = TRUE)>0)
+      {
+        rownames(sdm)<-colnames(sdm)<-rownames(bMPD.obs)
+        sdc=dist.3col(sdm)
+        sdc0=sdc[which(sdc[,3]==0),,drop=FALSE]
+        samp.sd0=unique(as.vector(as.matrix(sdc0[,1:2])))
+        samp0=rownames(comm)[which(rowSums(comm)==0)]
+        samp.ck=setdiff(samp.sd0,samp0)
+        if(length(samp.ck)>0)
+        {
+          comm.ck=comm[which(rownames(comm) %in% samp.ck),,drop=FALSE]
+          samp.sg=character(0)
+          if(detail.null)
+          {
+            samp.sg.ses<-samp.sg.rc<-samp.sg.conf<-character(0)
+            sig.nti="all"
+          }else{
+            if(sig.index %in% c("bNRI","SES")){sig.nti="SES";nti.cut=ses.cut}else if(sig.index=="RC"){sig.nti="RC";nti.cut=rc.cut}else if(sig.index=="Confidence"){sig.nti="Confidence";nti.cut=conf.cut}
+          }
+          if(special.method[1] %in% c("MNTD","NTI","both"))
+          {
+            nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = dis, nworker = nworker,
+                                memo.size.GB = memo.size.GB,weighted = weighted,
+                                rand = rand,output.MNTD = FALSE,sig.index=sig.nti)
+            if(detail.null)
+            {
+              samp.sg.ses=c(samp.sg.ses,rownames(nti.ck$SES)[which(abs(nti.ck$SES[,1])>ses.cut)])
+              samp.sg.rc=c(samp.sg.rc,rownames(nti.ck$RC)[which(abs(nti.ck$RC[,1])>rc.cut)])
+              samp.sg.conf=c(samp.sg.rc,rownames(nti.ck$Confidence)[which(abs(nti.ck$Confidence[,1])>conf.cut)])
+            }else{
+              samp.sg=c(samp.sg,rownames(nti.ck)[which(abs(nti.ck[,1])>nti.cut)])
+            }
+          }
+          
+          if(special.method[1] %in% c("MPD","NRI","both"))
+          {
+            nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = dis, nworker = nworker,
+                                memo.size.GB = memo.size.GB,weighted = weighted,
+                                rand = rand,output.MPD = FALSE,sig.index = sig.nti)
+            if(detail.null)
+            {
+              samp.sg.ses=c(samp.sg.ses,rownames(nri.ck$SES)[which(abs(nri.ck$SES[,1])>ses.cut)])
+              samp.sg.rc=c(samp.sg.rc,rownames(nri.ck$RC)[which(abs(nri.ck$RC[,1])>rc.cut)])
+              samp.sg.conf=c(samp.sg.rc,rownames(nri.ck$Confidence)[which(abs(nri.ck$Confidence[,1])>conf.cut)])
+            }else{
+              samp.sg=c(samp.sg,rownames(nri.ck)[which(abs(nri.ck[,1])>nti.cut)])
+            }
           }
           
           if(detail.null)
           {
-            special.ses[id.same1]=(1-(2*(rcm[id.same1]<=0)))*99
-            special.rc[id.same1]<-special.conf[id.same1]<-((1-(2*(rcm[id.same1]<=0)))*1.1)
-          }
-        }
-        sd0.rcn=which(sdm==0,arr.ind = TRUE)
-        if(length(samp.sg)>0)
-        {
-          sd0.sg=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg)),,drop=FALSE]
-          if(sig.index %in% c("RC","Confidence"))
-          {
-            result[sd0.sg]=(1-(2*(rcm[sd0.sg]<=0)))*1.1
-          }else if(sig.index %in% c("SES","bNTI")){
-            result[sd0.sg]=(1-(2*(rcm[sd0.sg]<=0)))*99
-          }
-        }
+            if(sig.index %in% c("bNRI","SES")){samp.sg=samp.sg.ses}else if(sig.index=="RC"){samp.sg=samp.sg.rc}else if(sig.index=="Confidence"){samp.sg=samp.sg.conf}
+            samp.sg.sum=length(samp.sg.ses)+length(samp.sg.rc)+length(samp.sg.conf)
+          }else{samp.sg.sum=0}
+          
+        }else{samp.sg=character(0);samp.sg.sum=0}
         
-        if(detail.null & samp.sg.sum>0)
+        samp1.id=which(rowSums(comm>0)==1)
+        
+        if(length(samp1.id)>0 | length(samp.sg)>0 | samp.sg.sum>0)
         {
-          sd0.sg.ses=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.ses)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.ses)),,drop=FALSE]
-          special.ses[sd0.sg.ses]=(1-(2*(rcm[sd0.sg.ses]<=0)))*99
-          sd0.sg.rc=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.rc)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.rc)),,drop=FALSE]
-          special.rc[sd0.sg.rc]=(1-(2*(rcm[sd0.sg.rc]<=0)))*1.1
-          sd0.sg.conf=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.conf)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.conf)),,drop=FALSE]
-          special.conf[sd0.sg.conf]=(1-(2*(rcm[sd0.sg.conf]<=0)))*1.1
+          rcm=(iCAMP::RC.pc(comm=comm,rand=rand,na.zero=TRUE,nworker=nworker,
+                            memory.G=memo.size.GB,weighted=weighted,
+                            unit.sum=unit.sum,silent=TRUE,dirichlet = dirichlet))$index
+          
+          if(length(samp1.id)>0)
+          {
+            requireNamespace("vegan")
+            BCm=as.matrix(vegan::vegdist(comm,method = "euclidean",binary = TRUE))
+            diag(BCm)=NA
+            id.samesp=which(BCm==0,arr.ind = TRUE)
+            id.same1=id.samesp[which((id.samesp[,1] %in% samp1.id)&(id.samesp[,2] %in% samp1.id)),,drop=FALSE]
+            
+            if(sig.index %in% c("RC","Confidence"))
+            {
+              result[id.same1]=(1-(2*(rcm[id.same1]<=0)))*1.1
+            }else if(sig.index %in% c("SES","bNTI")){
+              result[id.same1]=(1-(2*(rcm[id.same1]<=0)))*99
+            }
+            
+            if(detail.null)
+            {
+              special.ses[id.same1]=(1-(2*(rcm[id.same1]<=0)))*99
+              special.rc[id.same1]<-special.conf[id.same1]<-((1-(2*(rcm[id.same1]<=0)))*1.1)
+            }
+          }
+          sd0.rcn=which(sdm==0,arr.ind = TRUE)
+          if(length(samp.sg)>0)
+          {
+            sd0.sg=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg)),,drop=FALSE]
+            if(sig.index %in% c("RC","Confidence"))
+            {
+              result[sd0.sg]=(1-(2*(rcm[sd0.sg]<=0)))*1.1
+            }else if(sig.index %in% c("SES","bNTI")){
+              result[sd0.sg]=(1-(2*(rcm[sd0.sg]<=0)))*99
+            }
+          }
+          
+          if(detail.null & samp.sg.sum>0)
+          {
+            sd0.sg.ses=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.ses)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.ses)),,drop=FALSE]
+            special.ses[sd0.sg.ses]=(1-(2*(rcm[sd0.sg.ses]<=0)))*99
+            sd0.sg.rc=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.rc)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.rc)),,drop=FALSE]
+            special.rc[sd0.sg.rc]=(1-(2*(rcm[sd0.sg.rc]<=0)))*1.1
+            sd0.sg.conf=sd0.rcn[which((rownames(sdm)[sd0.rcn[,1]] %in% samp.sg.conf)|(rownames(sdm)[sd0.rcn[,2]] %in% samp.sg.conf)),,drop=FALSE]
+            special.conf[sd0.sg.conf]=(1-(2*(rcm[sd0.sg.conf]<=0)))*1.1
+          }
         }
       }
     }

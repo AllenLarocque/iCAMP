@@ -169,7 +169,7 @@ icamp.bins<-function(icamp.detail,treat=NULL,clas=NULL,silent=FALSE,
           x=x+1
         }
         #################################################
-        if(between.group)
+        if(between.group & length(trti.lev)>1)
         {
           for(j in 1:(length(trti.lev)-1))
           {

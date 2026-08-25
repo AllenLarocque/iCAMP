@@ -15,7 +15,8 @@ icamp.cm(comm, tree, meta.group = NULL, meta.com = NULL,
          taxa.rand.scale = c("across.all", "within.bin", "both"),
          phylo.metric = c("bMPD", "bMNTD", "both", "bNRI", "bNTI"),
          sig.index = c("Confidence", "SES.RC", "SES", "RC"),
-         bin.size.limit = 24, nworker = 4, memory.G = 50,
+         bin.size.limit = 24, bin.size.limit.eachmeta=NULL,
+         nworker = 4, memory.G = 50,
          rtree.save = FALSE, detail.save = TRUE, qp.save = TRUE,
          detail.null = FALSE, ignore.zero = TRUE, output.wd = getwd(),
          correct.special = TRUE, unit.sum = rowSums(comm),
@@ -25,7 +26,8 @@ icamp.cm(comm, tree, meta.group = NULL, meta.com = NULL,
          pd.spname.file = "pd.taxon.name.csv", pd.backingfile = "pd.bin",
          pd.desc.file = "pd.desc", taxo.metric = "bray",
          transform.method = NULL, logbase = 2, dirichlet = FALSE,
-         d.cut.method = c("maxpd", "maxdroot"))
+         d.cut.method = c("maxpd", "maxdroot"),
+         temp.saved.file=NULL, temp.save=TRUE)
 }
 
 \arguments{
@@ -48,6 +50,7 @@ icamp.cm(comm, tree, meta.group = NULL, meta.com = NULL,
   \item{phylo.metric}{character, the metric for phylogenetic null model analysis. bMPD (or bNRI), null model analysis based on beta mean pairwise distance (betaMPD); if sig.index is SES, it is beta net relatedness index (betaNRI). bMNTD (or bNTI), null model analysis based on beta mean nearest taxon distance (betaMNTD); if sig.index is SES, it is beta nearest taxon index (betaNTI). both, use null model test based on both bMPD and bMNTD. Default setting is based on bMPD.}
   \item{sig.index}{character, the index for null model significance test. Confidence, percentage of null values less extreme than the observed value, i.e. non-parametric one-side confidence level; if set sig.index as Confidence, it will be applied to both phylogenetic and taxonomic metrics. If set as SES.RC, use standard effect size (SES) for phylogenetic metrics (i.e. betaNTI or betaNRI), and use modified Raup-Crick (RC) for taxonomic metrics (RCbray). If set as SES, use SES for both phylogenetic and taxonomic metrics. If set as RC, use RC for both phylogenetic and taxonomic metrics. default is Confidence. If input a vector, only the first one will be used.}
   \item{bin.size.limit}{integer, the minimal requirement of bin size (taxa numer in a bin). Default setting is 24.}
+  \item{bin.size.limit.eachmeta}{integer, the minimal requirement of bin size (taxa numer in a bin) in each metacommunity. Default setting is NULL, means not to specify; recommend setting this to avoid unreasonable results due to too few taxa of some bins in some metacommunities.}
   \item{nworker}{integer, for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4, means 4 threads will be run.}
   \item{memory.G}{numeric, to set the memory size as you need, so that calculation of large tree will not be limited by physical memory. unit is Gb. default is 50Gb.}
   \item{rtree.save}{logic, whether to save the rooted tree as nwk file, if the input tree is not rooted. Default is FALSE.}
@@ -72,6 +75,8 @@ icamp.cm(comm, tree, meta.group = NULL, meta.com = NULL,
   \item{logbase}{numeric, the logarithm base used when transform.method='log'.} 
   \item{dirichlet}{Logic. If TRUE, the taxonomic null model will use Dirichlet distribution to generate relative abundances in randomized community matrix. If the input community matrix has all row sums no more than 1, the function will automatically set dirichlet=TRUE. default is FALSE.}
   \item{d.cut.method}{character, to specify the method to calculate pd.cut from ds. 'maxpd' means based on maximum phylogenetic distance, pd.cut = (maxpd - ds)/2. 'maxdroot' means based on maximum distance to root, pd.cut = maxdroot - (ds/2), which is preferred if the tree only has one edge from the root.}
+  \item{temp.saved.file}{file path, to specify the special .rda file saving the intermediate results of this function. If the function was accidentally stopped when running for a large dataset, you can put the intermediate results '....iCAMP.TempSave...rda' here, so it will resume from the break point.}
+  \item{temp.save}{logic, whether to save the intermediate results. This is useful when running this function for a large dataset. If this was set as FALSE but the function was accidentally stopped, you will not have intermediate result file for temp.saved.file to resume.}
 }
 \details{
 This function is particularly designed for samples from different metacommunities. The null model will randomize the commuity matrix under different metacommunities, separately (and independently). All other details are the same as the function icamp.big. 
@@ -121,6 +126,9 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 4: 2024.12.26, revise to allow binning to be constrained by both bin.size.limit and bin.size.limit.eachmeta.
+Version 3: 2024.12.23, add bin.size.limit.eachmeta to ensure each metacommunity has enough bin size.
+Version 2: 2023.9.4, add temp.saved.file and temp.save to keep intermediate results, so users can resume from unexpected break.
 Version 1: 2021.8.4
 }
 \seealso{
@@ -154,7 +162,11 @@ rownames(meta.group)=rownames(comm)
   
   icamp.out=icamp.cm(comm=comm, tree=tree, meta.group=meta.group,
                      pd.wd=save.wd, rand=rand.time, nworker=nworker,
-                     bin.size.limit=bin.size.limit)
+                     bin.size.limit=bin.size.limit,
+                     bin.size.limit.eachmeta=3,
+                     output.wd=save.wd,
+                     detail.save=FALSE,qp.save=FALSE,
+                     temp.save=FALSE)
   setwd(wd0)
 }
 }
