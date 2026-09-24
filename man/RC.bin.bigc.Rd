@@ -60,6 +60,7 @@ Kraft, N.J.B., Comita, L.S., Chase, J.M., Sanders, N.J., Swenson, N.G., Crist, T
 Daliang Ning
 }
 \note{
+Version 10: 2026.9.21, fix an error in confidence calculation when big.method is "loop".
 Version 9: 2025.2.3, fix an error in confidence calculation when big.method is "loop". Found by Chen-feng Lin.
 Version 8: 2023.7.4, fix error when setting dirichlet=TRUE. 
 Version 7: 2021.4.18, fix the bug when detail.null=TRUE and comm has only two samples.

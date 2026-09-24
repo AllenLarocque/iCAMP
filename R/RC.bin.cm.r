@@ -228,7 +228,7 @@ RC.bin.cm<-function(com,sp.bin,rand=1000,na.zero=TRUE,
         idxx=which(BC.obs>BCrd.array,arr.ind = TRUE)
         alpha[idxx]=alpha[idxx]+1
         idxx2=which(BC.obs<BCrd.array,arr.ind = TRUE)
-        alpha2[idxx]=alpha2[idxx]+1
+        alpha2[idxx2]=alpha2[idxx2]+1
       }
       gc()
     }

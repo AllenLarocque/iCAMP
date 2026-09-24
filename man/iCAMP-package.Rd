@@ -61,13 +61,14 @@ Version 1.8.3 (20260801): some minor changes before submitting to CRAN.
 Version 1.8.4 (20260802): some minor correction for option meta.spool in some .cm functions.
 Version 1.8.5 (20260812): build with R-4.6.1.
 Version 1.8.6 (20260825): edit description file to submit to CRAN.
+Version 1.9.1 (20260921): fix an error when using confidence as index in functions RC.bin.bigc and RC.bin.cm. In functions icamp.big, icamp.cm, and icamp.cm2, add an option to specify sample number threshold to change parallel to loop for RC calculation.
 }
 \details{
 \tabular{ll}{
 Package: \tab iCAMP\cr
 Type: \tab Package\cr
-Version: \tab 1.8.6\cr
-Date: \tab 2026-8-25\cr
+Version: \tab 1.9.1\cr
+Date: \tab 2026-9-21\cr
 License: \tab GPL-2\cr
 }
 }

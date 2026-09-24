@@ -23,7 +23,7 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
           pd.backingfile="pd.bin", pd.desc.file="pd.desc",
           taxo.metric="bray", transform.method=NULL,
           logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
-          temp.saved.file=NULL, temp.save=TRUE)
+          temp.saved.file=NULL, temp.save=TRUE, N.forloop=150)
 }
 \arguments{
   \item{comm}{matrix or data.frame, community data, each row is a sample or site, each colname is a taxon (a species or OTU or ASV), thus rownames should be sample IDs, colnames should be taxa IDs.}
@@ -68,6 +68,7 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
   \item{d.cut.method}{character, to specify the method to calculate pd.cut from ds. 'maxpd' means based on maximum phylogenetic distance, pd.cut = (maxpd - ds)/2. 'maxdroot' means based on maximum distance to root, pd.cut = maxdroot - (ds/2), which is preferred if the tree only has one edge from the root.}
   \item{temp.saved.file}{file path, to specify the special .rda file saving the intermediate results of this function. If the function was accidentally stopped when running for a large dataset, you can put the intermediate results '....iCAMP.TempSave...rda' here, so it will resume from the break point.}
   \item{temp.save}{logic, whether to save the intermediate results. This is useful when running this function for a large dataset. If this was set as FALSE but the function was accidentally stopped, you will not have intermediate result file for temp.saved.file to resume.}
+  \item{N.forloop}{integer, when sample number is larger than this number, set big.method as 'loop' for function RC.bin.bigc rather than use parallel computing, to avoid occupying too much memory when calculating RC.}
 }
 \details{
 This is the main function of iCAMP (Ning et al 2020). Most parameters can use the default settings. 
@@ -121,6 +122,7 @@ Kane, M.J., Emerson, J., Weston, S. (2013). Scalable Strategies for Computing wi
 Daliang Ning
 }
 \note{
+Version 13: 2026.9.21, add option N.forloop to change sample number threshold to change parallel to loop for RC.bin.bigc.
 Version 13: 2023.9.4, add temp.saved.file and temp.save to keep intermediate results, so users can resume from unexpected break.
 Version 12: 2021.6.4, debug, fix 'arguments imply differing number of rows' issue.
 Version 11: 2021.6.4, add option d.cut.method to handle trees with only one edge from root.

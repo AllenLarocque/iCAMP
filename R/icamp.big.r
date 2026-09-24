@@ -15,7 +15,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
                     pd.backingfile="pd.bin", pd.desc.file="pd.desc",
                     taxo.metric="bray", transform.method=NULL,
                     logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
-                    temp.saved.file=NULL,temp.save=TRUE)
+                    temp.saved.file=NULL,temp.save=TRUE,N.forloop=150)
 {
   # v20200725 add sig.index, conf.cut, detail.null
   # v20210417 add taxo.metric, transform.method, logbase, dirichlet
@@ -356,7 +356,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   if(taxa.rand.scale %in% c("across.all","both"))
   {
     if(!is.null(tempsave$RC2res)){RC2res=tempsave$RC2res}else{
-      if(nrow(comm)>150){big.method="loop"}else{big.method="no"}
+      if(nrow(comm)>N.forloop){big.method="loop"}else{big.method="no"}
       RC2res=iCAMP::RC.bin.bigc(com = comm,sp.bin = sp.bin,rand = rand,nworker = nworker,
                                 memory.G = memory.G,big.method = big.method,
                                 unit.sum = unit.sum,meta.ab=meta.ab,

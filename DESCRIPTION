@@ -2,7 +2,7 @@ Package: iCAMP
 Type: Package
 Title: Infer Community Assembly Mechanisms by Phylogenetic-Bin-Based
         Null Model Analysis
-Version: 1.8.6
+Version: 1.9.1
 Authors@R: person(given = "Daliang", family = "Ning", role = c("aut", "cre"), email = "ningdaliang@ou.edu")
 Imports:
         vegan,parallel,permute,ape,bigmemory,nortest,minpack.lm,Hmisc,stats4,DirichletReg,data.table
@@ -11,8 +11,8 @@ Description: To implement a general framework to quantitatively infer Community 
 License: GPL-2
 URL: https://github.com/DaliangNing/iCAMP1
 NeedsCompilation: no
-Packaged: 2026-08-25 16:13:08 UTC; Daliang
+Packaged: 2026-09-21 21:00:05 UTC; Daliang
 Author: Daliang Ning [aut, cre]
 Maintainer: Daliang Ning <ningdaliang@ou.edu>
 Repository: CRAN
-Date/Publication: 2026-08-25 22:50:02 UTC
+Date/Publication: 2026-09-24 07:00:02 UTC
