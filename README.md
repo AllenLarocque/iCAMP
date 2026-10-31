@@ -1,0 +1,3 @@
+# iCAMP, cl-arg fork
+
+This is a fork of iCAMP 1.9.1 (GPL-2) by Daliang Ning, whose repository is https://github.com/DaliangNing/iCAMP1. It adds one optional argument, `cl`, to the functions that create a `parallel` cluster (`pdist.big`, `NRI.p`, `NTI.p`, `bNRIn.p`, `bNTIn.p`, `bNRI.bin.big`, `bNTI.bin.big`, `RC.pc`, `RC.bin.bigc`, `maxbigm`, `tree.droot`, `tree.path`) and to `icamp.big`, `midpoint.root.big` and `taxa.binphy.big`, which pass it on. A caller can supply its own cluster, so it can set the workers' library, seed them with `parallel::clusterSetRNGStream()`, and stop the cluster itself. When `cl` is omitted, computation is unchanged. The changes are on the `cl-arg` branch (compare with tag 1.9.1: https://github.com/AllenLarocque/iCAMP/compare/1.9.1...cl-arg).
