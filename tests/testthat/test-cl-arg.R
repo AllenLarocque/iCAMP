@@ -86,6 +86,7 @@ test_that("bare cluster: missing library errors on the worker; cluster survives"
   withr::defer(parallel::stopCluster(bare))
   sees <- parallel::clusterEvalQ(bare, requireNamespace("bigmemory", quietly = TRUE))[[1]]
   testthat::skip_if(isTRUE(sees), "bare worker can see bigmemory; precondition not met")
+  localNoNewClusters()
   expect_error(
     iCAMP::pdist.big(tree, wd = withr::local_tempdir(), nworker = 1, cl = bare),
     "there is no package called")

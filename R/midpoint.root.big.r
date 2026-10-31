@@ -1,4 +1,4 @@
-midpoint.root.big<-function (tree, pd.desc, pd.spname, pd.wd, nworker=4,cl=NULL)
+midpoint.root.big<-function (tree, pd.desc, pd.spname, pd.wd, nworker=4,cl=NULL) 
 {
   if(!is.null(cl)) nworker <- length(cl)
   sp.name=tree$tip.label
