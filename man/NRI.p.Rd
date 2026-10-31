@@ -10,7 +10,7 @@ Calculate net relatedness index (NRI) or other index of null model significance 
 NRI.p(comm, dis, nworker = 4, memo.size.GB = 50,
       weighted = c(TRUE, FALSE), check.name = TRUE,
       rand = 1000, output.MPD = c(FALSE, TRUE), silent = FALSE,
-      sig.index=c("SES","NRI","Confidence","RC","all"))
+      sig.index=c("SES","NRI","Confidence","RC","all"), cl = NULL)
 }
 \arguments{
   \item{comm}{community data matrix. rownames are sample names. colnames are species names.}
@@ -23,6 +23,7 @@ NRI.p(comm, dis, nworker = 4, memo.size.GB = 50,
   \item{output.MPD}{Logic, whether to output observed MNTD, so that you do not need to calculate observed MNTD alone. default is FALSE.}
   \item{silent}{Logic, if FALSE, some messages will be showed during calculation. Default is FALSE.}
   \item{sig.index}{character, the index for null model significance test. SES or NRI, standard effect size, i.e. net relatedness index (NRI); Confidence, percentage of null values less extreme than the observed value, i.e. non-parametric one-side confidence level; RC, modified Raup-Crick index (RC) based on MPD, i.e. count the number of null MPD lower than observed MPD plus a half of the number of null MPD equal to observed MPD, to get alpha, then calculate MPD-based RC as (2 x alpha - 1); all, output all the three indexes. default is SES. If input a vector, only the first element will be used.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 The net relatedness index (NRI) is a standardized measure of the mean pairwise phylogenetic distance in each sample/community (MPD). Currently this function only performs one null model algorithm, "taxa.labels" ("taxa shuffle", Kembel 2009), which is to shuffle distance matrix labels (across all taxa included in distance matrix). If the randomized results are all the same, the standard deviation will be zero and NRI will be NAN. In this case, NRI will be set as zero, since the observed result is not differentiable from randomized results.

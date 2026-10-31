@@ -7,13 +7,14 @@ Distance from root to tip(s) and node(s) on phylogenetic tree
 To calculate the distance from root to tip(s) and node(s) on phylogenetic tree
 }
 \usage{
-tree.droot(tree, range = NA, nworker = 4, output.path = FALSE)
+tree.droot(tree, range = NA, nworker = 4, output.path = FALSE, cl = NULL)
 }
 \arguments{
   \item{tree}{Phylogenetic tree, an object of class "phylo".}
   \item{range}{NA or a vector of integer, to specify the numbering of the tips/nodes of which the distances to root will be calculated. The numbering corresponds to those in the element "edge" of the tree. Default is NA, means to calculate all tips and nodes.}
   \item{nworker}{integer, for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4, means 4 threads will be run.}
   \item{output.path}{logic, this function will call the function tree.path, if output.path is TRUE, the result of tree.path will be included in the output. Default is FALSE.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 A tool to get distances to root, used in phylogenetic binning.

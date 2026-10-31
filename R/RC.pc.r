@@ -3,8 +3,9 @@ RC.pc<-function(comm,rand=1000,na.zero=TRUE,nworker=4,
                 meta.ab=NULL,sig.index=c("RC","Confidence","SES"),
                 detail.null=FALSE,output.bray=FALSE,silent=FALSE,
                 taxo.metric="bray", transform.method=NULL, logbase=2,
-                dirichlet=FALSE)
+                dirichlet=FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   # v20200728 add sig.index, detail.null, output.bray
   
   requireNamespace("vegan")
@@ -132,15 +133,17 @@ RC.pc<-function(comm,rand=1000,na.zero=TRUE,nworker=4,
           taxo.metric,transform.method,logbase)
   }
   
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   if(!silent){message("Now parallel computing. begin at ", date(),". Please wait...")}
   BC.rd<-parallel::parLapply(c1,1:rand,BC.rand,com.rd0=com.rd0,samp.num=samp.num,id=id,
                              prob.sp=prob.sp,prob.ab=prob.ab,Si=Si,Ni=Ni,na.zero=na.zero,unit.sum=unit.sum,
                              BCnew=BCnew,taxo.metric=taxo.metric,
                              transform.method=transform.method,logbase=logbase,dirichlet=dirichlet)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   
   BC.rd=array(unlist(BC.rd),dim=c(nrow(BC.rd[[1]]),ncol(BC.rd[[1]]),length(BC.rd)))
   gc()

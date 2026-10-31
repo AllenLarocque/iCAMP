@@ -14,7 +14,7 @@ bNRI.bin.big(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
              unit.sum = NULL, correct.special = FALSE,
              detail.null=FALSE, special.method=c("MPD","MNTD","both"),
              ses.cut=1.96,rc.cut=0.95, conf.cut=0.975,
-             dirichlet = FALSE)
+             dirichlet = FALSE, cl = NULL)
 }
 
 \arguments{
@@ -39,6 +39,7 @@ bNRI.bin.big(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
   \item{rc.cut}{numeric, the cutoff of significant modified Raup-Crick metric, default is 0.95.}
   \item{conf.cut}{numeric, the cutoff of significant one-side confidence level, default is 0.975.}
   \item{dirichlet}{Logic. If TRUE, the taxonomic null model for correcting special cases will use Dirichlet distribution to generate relative abundances in randomized community matrix. default is FALSE.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 The beta net relatedness index (betaNRI; Webb et al. 2008, Stegen et al 2012) is calculated for each phylogenetic bin. betaNRI is a standardized measure of the mean pairwise distance between samples/communities (betaMPD). Parallel computing is used to improve the speed.

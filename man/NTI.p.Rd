@@ -11,7 +11,7 @@ NTI.p(comm, dis, nworker = 4, memo.size.GB = 50,
       weighted = c(TRUE, FALSE), rand = 1000,
       check.name = TRUE, output.MNTD = c(FALSE, TRUE),
       sig.index=c("SES","NTI","Confidence","RC","all"),
-      silent=FALSE)
+      silent=FALSE, cl = NULL)
 }
 \arguments{
   \item{comm}{community data matrix. rownames are sample names. colnames are species names.}
@@ -24,6 +24,7 @@ NTI.p(comm, dis, nworker = 4, memo.size.GB = 50,
   \item{output.MNTD}{logic, if TRUE, the NTI and MNTD  will be output, if FALSE, only output NTI.}
   \item{sig.index}{character, the index for null model significance test. SES or NTI, standard effect size, i.e. nearest taxon index (NTI); Confidence, percentage of null values less extreme than the observed value, i.e. non-parametric one-side confidence level; RC, modified Raup-Crick index (RC) based on MNTD, i.e. count the number of null MNTD lower than observed MNTD plus a half of the number of null MNTD equal to observed MNTD, to get alpha, then calculate MNTD-based RC as (2 x alpha - 1); all, output all the three indexes. default is SES. If input a vector, only the first element will be used.}
   \item{silent}{logic, if FALSE, some messages will show during calculation.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 The nearest taxon index (NTI) is a standardized measure of the mean phylogenetic distance to the nearest taxon in each sample/community (MNTD). Currently this function only performs one null model algorithm, "taxa.labels" ("taxa shuffle", Kembel 2009), which is to shuffle distance matrix labels (across all taxa included in distance matrix). If the randomized results are all the same, the standard deviation will be zero and NTI will be NAN. In this case, NTI will be set as zero, since the observed result is not differentiable from randomized results.

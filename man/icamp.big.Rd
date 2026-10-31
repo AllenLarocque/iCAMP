@@ -23,7 +23,7 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
           pd.backingfile="pd.bin", pd.desc.file="pd.desc",
           taxo.metric="bray", transform.method=NULL,
           logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
-          temp.saved.file=NULL, temp.save=TRUE, N.forloop=150)
+          temp.saved.file=NULL, temp.save=TRUE, N.forloop=150, cl = NULL)
 }
 \arguments{
   \item{comm}{matrix or data.frame, community data, each row is a sample or site, each colname is a taxon (a species or OTU or ASV), thus rownames should be sample IDs, colnames should be taxa IDs.}
@@ -69,6 +69,7 @@ icamp.big(comm, tree, pd.desc = NULL, pd.spname = NULL, pd.wd = getwd(),
   \item{temp.saved.file}{file path, to specify the special .rda file saving the intermediate results of this function. If the function was accidentally stopped when running for a large dataset, you can put the intermediate results '....iCAMP.TempSave...rda' here, so it will resume from the break point.}
   \item{temp.save}{logic, whether to save the intermediate results. This is useful when running this function for a large dataset. If this was set as FALSE but the function was accidentally stopped, you will not have intermediate result file for temp.saved.file to resume.}
   \item{N.forloop}{integer, when sample number is larger than this number, set big.method as 'loop' for function RC.bin.bigc rather than use parallel computing, to avoid occupying too much memory when calculating RC.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 This is the main function of iCAMP (Ning et al 2020). Most parameters can use the default settings. 

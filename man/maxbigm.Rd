@@ -7,7 +7,7 @@ Find maximum value in a big matrix
 Return the maxium value and its (their) location(s) in a big matrix.
 }
 \usage{
-maxbigm(m.desc, m.wd, nworker = 1, rm.na = TRUE, size.limit = 10000 * 10000)
+maxbigm(m.desc, m.wd, nworker = 1, rm.na = TRUE, size.limit = 10000 * 10000, cl = NULL)
 }
 \arguments{
   \item{m.desc}{the name of the file to hold the backingfile description of the big matrix.}
@@ -15,6 +15,7 @@ maxbigm(m.desc, m.wd, nworker = 1, rm.na = TRUE, size.limit = 10000 * 10000)
   \item{nworker}{integer, for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4, means 4 threads will be run.}
   \item{rm.na}{logic, whether to remove NA. Default is TRUE.}
   \item{size.limit}{the matrix size which your current computer memory can easily handle at each time.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 A tool to figure out the maximum value in the big phylogenetic distance matrix.

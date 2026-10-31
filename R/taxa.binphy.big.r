@@ -1,8 +1,9 @@
 taxa.binphy.big<-function(tree,pd.desc, pd.spname, pd.wd, 
                           outgroup.tip=NA,outgroup.rm=TRUE,
                           d.cut=NULL,ds=0.2,bin.size.limit=24,
-                          nworker=4,d.cut.method=c("maxpd","maxdroot"))
+                          nworker=4,d.cut.method=c("maxpd","maxdroot"),cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   requireNamespace("ape")
   requireNamespace("bigmemory")
   
@@ -15,7 +16,7 @@ taxa.binphy.big<-function(tree,pd.desc, pd.spname, pd.wd,
   }
   if(!is.rooted(tree)){stop("Failed to root the tree. Stop. ",date())}
   
-  path=iCAMP::tree.path(tree,nworker,cum="from.root")
+  path=iCAMP::tree.path(tree,nworker,cum="from.root",cl=cl)
   
   if(is.null(d.cut))
   {
@@ -23,7 +24,7 @@ taxa.binphy.big<-function(tree,pd.desc, pd.spname, pd.wd,
     {
       stop("d.cut or ds, at least one should be given.")
     }else if(d.cut.method[1]=="maxpd"){
-      pdmax=iCAMP::maxbigm(m.desc = pd.desc, m.wd = pd.wd, nworker = nworker,
+      pdmax=iCAMP::maxbigm(m.desc = pd.desc, m.wd = pd.wd, nworker = nworker, cl = cl,
                     rm.na = TRUE, size.limit = 10000 * 10000)$max.value
       d.cut=(pdmax-ds)/2
     }else if(d.cut.method[1]=="maxdroot"){
@@ -111,7 +112,7 @@ taxa.binphy.big<-function(tree,pd.desc, pd.spname, pd.wd,
            
     rootid=tree$edge[1,1]
     nodes=((length(tree$tip.label)+1):max(tree$edge));nodes=nodes[which(nodes!=rootid)]
-    droot=tree.droot(tree,range = nodes,nworker,output.path = TRUE)
+    droot=tree.droot(tree,range = nodes,nworker,output.path = TRUE,cl=cl)
     node.path=droot$path
     names(node.path)=nodes
     droot=droot$droot

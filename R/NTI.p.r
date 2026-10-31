@@ -1,8 +1,9 @@
 NTI.p<-function(comm, dis, nworker=4, memo.size.GB=50, 
                 weighted=c(TRUE,FALSE),rand=1000,
                 check.name=TRUE,output.MNTD=c(FALSE,TRUE),
-                sig.index=c("SES","NTI","Confidence","RC","all"),silent=FALSE)
+                sig.index=c("SES","NTI","Confidence","RC","all"),silent=FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   if(.Platform$OS.type=="windows")
   {
     if(utils::memory.limit()<memo.size.GB*1024)
@@ -54,12 +55,14 @@ NTI.p<-function(comm, dis, nworker=4, memo.size.GB=50,
   gc()
   
   requireNamespace("parallel")
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   if(!silent){message("Now randomizing by parallel computing. Begin at ", date(),". Please wait...")}
   MNTD.rand<-parallel::parLapply(c1,permat,MNTD.random,diss=dis,com=comm,weighted=weighted)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   MNTD.rand<-array(unlist(MNTD.rand),dim=c(nrow(MNTD.rand[[1]]),ncol(MNTD.rand[[1]]),length(MNTD.rand)))
   gc()
   rownames(MNTD.rand)=rownames(MNTD.obs)

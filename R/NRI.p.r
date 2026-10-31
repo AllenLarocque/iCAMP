@@ -1,8 +1,9 @@
 NRI.p<-function(comm, dis, nworker=4, memo.size.GB=50,
                 weighted=c(TRUE,FALSE), check.name=TRUE,
                 rand=1000,output.MPD=c(FALSE,TRUE),silent=FALSE,
-                sig.index=c("SES","NRI","Confidence","RC","all"))
+                sig.index=c("SES","NRI","Confidence","RC","all"),cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   if(.Platform$OS.type=="windows")
   {
     if(utils::memory.limit()<memo.size.GB*1024)
@@ -53,12 +54,14 @@ NRI.p<-function(comm, dis, nworker=4, memo.size.GB=50,
     MPD.rand=lapply(permat,MPD.random,diss=dis,com=comm,weighted=weighted)
   }else{
     requireNamespace("parallel")
+    if(is.null(cl)){
     c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
     if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
     if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+    }else{c1 <- cl}
     if(!silent){message("Now randomizing by parallel computing. Begin at ", date(),". Please wait...")}
     MPD.rand<-parallel::parLapply(c1,permat,MPD.random,diss=dis,com=comm,weighted=weighted)
-    parallel::stopCluster(c1)
+    if(is.null(cl)) parallel::stopCluster(c1)
     gc()
   }
   

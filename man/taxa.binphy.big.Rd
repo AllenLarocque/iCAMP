@@ -10,7 +10,7 @@ Phylogenetic binning for iCAMP analysis. To handle large phylogenetic tree, phyl
 taxa.binphy.big(tree, pd.desc, pd.spname, pd.wd,
                 outgroup.tip = NA, outgroup.rm = TRUE,
                 d.cut=NULL, ds=0.2, bin.size.limit = 24,
-                nworker = 4, d.cut.method=c("maxpd","maxdroot"))
+                nworker = 4, d.cut.method=c("maxpd","maxdroot"), cl = NULL)
 }
 \arguments{
   \item{tree}{phylogenetic tree, an object of class "phylo".}
@@ -24,6 +24,7 @@ taxa.binphy.big(tree, pd.desc, pd.spname, pd.wd,
   \item{bin.size.limit}{integer, the minimal requirement of bin size (taxa numer in a bin). Default setting is 24.}
   \item{nworker}{integer, for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4, means 4 threads will be run.}
   \item{d.cut.method}{character, to specify the method to calculate d.cut from ds. 'maxpd' means based on maximum phylogenetic distance, d.cut = (maxpd - ds)/2. 'maxdroot' means based on maximum distance to root, d.cut = maxdroot - (ds/2), which is preferred if the tree only has one edge from the root.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 The phylogenetic tree is truncated at a certain phylogenetic distance (as short as necessary) to the root (d.cut), by which all the rest connections between tips (taxa) are lower than a threshold. Within the threshold, phylogenetic signal is generally significant. The taxa derived from the same ancestor after the truncating point are grouped to the same strict bin. Then, each small bin is merged into the bin with the nearest relatives. This procedure is repeated until all merged bins have enough taxa (>= bin.size.limit). Bigmemory (Kane et al 2013) is used to deal with large datasets.

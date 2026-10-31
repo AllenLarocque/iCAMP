@@ -4,8 +4,9 @@ RC.bin.bigc<-function(com,sp.bin,rand=1000,na.zero=TRUE,
                       sig.index=c("RC","Confidence","SES"),
                       detail.null=FALSE,output.bray=FALSE,
                       taxo.metric="bray", transform.method=NULL,
-                      logbase=2, dirichlet=FALSE)
+                      logbase=2, dirichlet=FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   requireNamespace("vegan")
   requireNamespace("parallel")
   if(max(rowSums(com,na.rm = TRUE))<=1 & (!dirichlet))
@@ -205,16 +206,18 @@ RC.bin.bigc<-function(com,sp.bin,rand=1000,na.zero=TRUE,
                     })
     }
   }else{
+    if(is.null(cl)){
     c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
     if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
     if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+    }else{c1 <- cl}
     message("Now parallel computing. begin at ", date(),". Please wait...")
     BC.rd<-parallel::parLapply(c1,1:rand,BC.rand,com.rd0=com.rd0,samp.num=samp.num,
                      id=id,prob.sp=prob.sp,prob.ab=prob.ab,Si=Si,Ni=Ni,
                      na.zero=na.zero,sp.bin=sp.bin,bin.num=bin.num,unit.sum=unit.sum,
                      bin.BC=bin.BC,bin.lev=bin.lev,taxo.metric=taxo.metric,
                      transform.method=transform.method,logbase=logbase,dirichlet=dirichlet)
-    parallel::stopCluster(c1)
+    if(is.null(cl)) parallel::stopCluster(c1)
     BC.rd=array(unlist(BC.rd),dim=c(nrow(BC.rd[[1]][[1]]),ncol(BC.rd[[1]][[1]]),length(BC.rd[[1]]),length(BC.rd)))
     gc()
     message("----now calculating sig.index of Bray at ",date(),"----")

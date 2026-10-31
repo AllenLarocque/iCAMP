@@ -1,5 +1,6 @@
-tree.path<-function(tree,nworker=4,range=NA,cum=c("no","from.root","from.tip","both"))
+tree.path<-function(tree,nworker=4,range=NA,cum=c("no","from.root","from.tip","both"),cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   all.name=vector(length = max(tree$edge))
   all.name[-tree$edge[1,1]]=c(tree$tip.label,paste("I",1:(tree$Nnode-1),sep = ""))
   all.name[tree$edge[1,1]]="Root"
@@ -36,13 +37,15 @@ tree.path<-function(tree,nworker=4,range=NA,cum=c("no","from.root","from.tip","b
   }
   
   requireNamespace("parallel")
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   
   message("Now computing path. begin at ", date(),". Please wait...")
   path<-parallel::parLapply(c1,range,pathf,edge=edge,edge.len=edge.len)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   gc()
   names(path)<-all.name[range]
   path

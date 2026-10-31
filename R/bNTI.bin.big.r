@@ -5,8 +5,9 @@ bNTI.bin.big<-function(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
                        correct.special=FALSE,detail.null=FALSE,
                        special.method=c("MNTD","MPD","both"),
                        ses.cut=1.96, rc.cut=0.95, conf.cut=0.975,
-                       exclude.conspecifics = FALSE, dirichlet = FALSE)
+                       exclude.conspecifics = FALSE, dirichlet = FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   #v20200728 add conf.cut, detail.null. change RC to sig.index.
   #load package
   requireNamespace("parallel")
@@ -91,15 +92,17 @@ bNTI.bin.big<-function(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
                     }) # calculate observed betaMNTD.
   bMNTD.obs<-array(unlist(bMNTD.obs), dim = c(nrow(bMNTD.obs[[1]]),ncol(bMNTD.obs[[1]]),bin.num))
   gc()
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   message("Now randomizing by parallel computing. Begin at ", date(),". Please wait...")
   bMNTD.rand<-parallel::parLapply(c1,1:rand,bMNTD.random,pd.desc=pd.desc, pd.spname=pd.spname,
                         pd.wd=pd.wd, pdid.bin=pdid.bin, com=comm,sp.bin=sp.bin,
                         bin.num=bin.num,weighted=weighted,perm=perm,
                         unit.sum=unit.sum,exclude.conspecifics=exclude.conspecifics)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   gc()
   bMNTD.rand<-array(unlist(bMNTD.rand),dim=c(nrow(bMNTD.rand[[1]][[1]]),ncol(bMNTD.rand[[1]][[1]]),length(bMNTD.rand[[1]]),length(bMNTD.rand)))
   
@@ -161,7 +164,7 @@ bNTI.bin.big<-function(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
           }
           if(special.method[1] %in% c("MNTD","NTI","both"))
           {
-            nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = pdi, nworker = nworker,
+            nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = pdi, nworker = nworker, cl = cl,
                          memo.size.GB = memo.size.GB,weighted = weighted,
                          rand = rand,output.MNTD = FALSE,sig.index = sig.nti)
             if(detail.null)
@@ -176,7 +179,7 @@ bNTI.bin.big<-function(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
           
           if(special.method[1] %in% c("MPD","NRI","both"))
           {
-            nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = pdi, nworker = nworker,
+            nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = pdi, nworker = nworker, cl = cl,
                          memo.size.GB = memo.size.GB,weighted = weighted,
                          rand = rand,output.MPD = FALSE,sig.index = sig.nti)
             if(detail.null)
@@ -203,7 +206,7 @@ bNTI.bin.big<-function(comm, pd.desc, pd.spname, pd.wd, pdid.bin, sp.bin,
         
         if(length(samp1.id)>0 | length(samp.sg)>0 | samp.sg.sum>0)
         {
-          rcm=(iCAMP::RC.pc(comm=commi,rand=rand,na.zero=TRUE,nworker=nworker,
+          rcm=(iCAMP::RC.pc(comm=commi,rand=rand,na.zero=TRUE,nworker=nworker, cl = cl,
                             memory.G=memo.size.GB,weighted=weighted,
                             unit.sum=unit.sum,silent=TRUE,dirichlet = dirichlet))$index
           

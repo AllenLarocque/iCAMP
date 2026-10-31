@@ -13,7 +13,7 @@ RC.bin.bigc(com, sp.bin, rand = 1000, na.zero = TRUE,
             sig.index=c("RC","Confidence","SES"),
             detail.null=FALSE,output.bray=FALSE,
             taxo.metric= "bray", transform.method=NULL,
-            logbase=2, dirichlet=FALSE)
+            logbase=2, dirichlet=FALSE, cl = NULL)
 }
 
 \arguments{
@@ -34,6 +34,7 @@ RC.bin.bigc(com, sp.bin, rand = 1000, na.zero = TRUE,
   \item{transform.method}{character or a defined function, to specify how to transform community matrix before calculating dissimilarity. if it is a characher, it should be a method name as in the function 'decostand' in package 'vegan', including 'total','max','freq','normalize','range','standardize','pa','chi.square','cmdscale','hellinger','log'.}
   \item{logbase}{numeric, the logarithm base used when transform.method='log'.} 
   \item{dirichlet}{Logic. If TRUE, the taxonomic null model will use Dirichlet distribution to generate relative abundances in randomized community matrix. If the input community matrix has all row sums no more than 1, the function will automatically set dirichlet=TRUE. default is FALSE.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 This function calculates RC.Bray in each phylogenetic bin while randomizing across all bins (Ning et al 2020). The Raup-Crick based on taxonomic dissimilarity index was proposed by Chase in 2011, and then modified to include consider species relative abundances by Stegen in 2013. The non-random part recognized by RC can reflect the influence niche seletion and extreme dispersal. The original codes used a relatively time-consuming looping. This function improved the efficiency and added some parameters to fit iCAMP analysis.

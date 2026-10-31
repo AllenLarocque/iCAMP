@@ -1,5 +1,6 @@
-maxbigm<-function(m.desc,m.wd,nworker=1,rm.na=TRUE,size.limit=10000*10000)
+maxbigm<-function(m.desc,m.wd,nworker=1,rm.na=TRUE,size.limit=10000*10000,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   requireNamespace("bigmemory")
   
   mx=bigmemory::attach.big.matrix(dget(paste0(m.wd,"/",m.desc)))
@@ -29,11 +30,13 @@ maxbigm<-function(m.desc,m.wd,nworker=1,rm.na=TRUE,size.limit=10000*10000)
     maxs=lapply(1:num, findmax,m.desc=m.desc,ser=ser,rm.na=rm.na,m.wd=m.wd)
   }else{
     requireNamespace("parallel")
+    if(is.null(cl)){
     c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
     if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
     if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+    }else{c1 <- cl}
     maxs<-parallel::parLapply(c1,1:num,findmax,m.desc=m.desc,ser=ser,rm.na=rm.na,m.wd=m.wd)
-    parallel::stopCluster(c1)
+    if(is.null(cl)) parallel::stopCluster(c1)
     gc()
   }
   

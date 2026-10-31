@@ -15,8 +15,9 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
                     pd.backingfile="pd.bin", pd.desc.file="pd.desc",
                     taxo.metric="bray", transform.method=NULL,
                     logbase=2, dirichlet=FALSE, d.cut.method=c("maxpd","maxdroot"),
-                    temp.saved.file=NULL,temp.save=TRUE,N.forloop=150)
+                    temp.saved.file=NULL,temp.save=TRUE,N.forloop=150,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   # v20200725 add sig.index, conf.cut, detail.null
   # v20210417 add taxo.metric, transform.method, logbase, dirichlet
   comm.old=comm
@@ -69,7 +70,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       pd.big$pd.name.file=pd.spname.file
     }else{
       if(!is.null(tempsave$pd.big)){pd.big=tempsave$pd.big}else{
-        pd.big=iCAMP::pdist.big(tree = tree, wd=pd.wd, nworker = nworker,
+        pd.big=iCAMP::pdist.big(tree = tree, wd=pd.wd, nworker = nworker, cl = cl,
                                 treepath.file=treepath.file, pd.spname.file=pd.spname.file,
                                 pd.backingfile=pd.backingfile, pd.desc.file=pd.desc.file)
         tempsave=TSX(pd.big)
@@ -88,7 +89,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   {
     if(!is.null(tempsave$tree.rt)){tree.rt=tempsave$tree.rt}else{
       tree.rt=iCAMP::midpoint.root.big(tree, pd.desc=pd.desc, pd.spname=pd.spname,
-                                       pd.wd=pd.wd, nworker=nworker)
+                                       pd.wd=pd.wd, nworker=nworker, cl = cl)
       tempsave=TSX(tree.rt)
     }
     tree=tree.rt$tree
@@ -113,7 +114,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
     taxabin3=iCAMP::taxa.binphy.big(tree,pd.desc=pd.desc, pd.spname=pd.spname,
                                     pd.wd=pd.wd,outgroup.tip=NA,outgroup.rm=TRUE,
                                     d.cut=d.cut,ds=ds,bin.size.limit=bin.size.limit,
-                                    nworker=nworker,d.cut.method=d.cut.method)
+                                    nworker=nworker, cl = cl,d.cut.method=d.cut.method)
     gc()
     tempsave=TSX(taxabin3)
   }
@@ -201,7 +202,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
           message("----bMPD bin i=",i," in ",bin.num," ---- ",date())
           pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
           rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
-          bNRI1res[[i]]=iCAMP::bNRIn.p(comm = com.bin[[i]], dis = pd.bini,nworker=nworker,
+          bNRI1res[[i]]=iCAMP::bNRIn.p(comm = com.bin[[i]], dis = pd.bini,nworker=nworker, cl = cl,
                                        memo.size.GB = memory.G,weighted = TRUE,rand = rand,
                                        sig.index=sig.ind.phy,unit.sum = unit.sum,output.bMPD = detail.null,
                                        correct.special = correct.special,detail.null=detail.null,
@@ -242,7 +243,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
           message("----bMNTD bin i=",i," in ",bin.num," ---- ",date())
           pd.bini=pd[pdid.bin[[i]],pdid.bin[[i]]]
           rownames(pd.bini)<-colnames(pd.bini)<-colnames(com.bin[[i]])
-          bNTI1res[[i]]=iCAMP::bNTIn.p(comm=com.bin[[i]],dis=pd.bini,nworker = nworker,
+          bNTI1res[[i]]=iCAMP::bNTIn.p(comm=com.bin[[i]],dis=pd.bini,nworker = nworker, cl = cl,
                                        memo.size.GB = memory.G,weighted = TRUE,rand = rand,
                                        sig.index=sig.ind.phy,unit.sum=unit.sum,output.bMNTD = detail.null,
                                        correct.special = correct.special,detail.null=detail.null,
@@ -280,7 +281,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       if(!is.null(tempsave$bNRI2res)){bNRI2res=tempsave$bNRI2res}else{
         bNRI2res=iCAMP::bNRI.bin.big(comm = comm,pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
                                    pdid.bin=pdid.bin, sp.bin = sp.bin,spname.check = FALSE,
-                                   nworker = nworker,memo.size.GB = memory.G,weighted = TRUE,
+                                   nworker = nworker, cl = cl,memo.size.GB = memory.G,weighted = TRUE,
                                    rand = rand,output.bMPD=detail.null,sig.index=sig.ind.phy,
                                    unit.sum=unit.sum,correct.special = correct.special,
                                    detail.null=detail.null,special.method=special.method.bNRI,
@@ -303,7 +304,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       if(!is.null(tempsave$bNTI2res)){bNTI2res=tempsave$bNTI2res}else{
         bNTI2res=iCAMP::bNTI.bin.big(comm = comm, pd.desc=pd.desc, pd.spname=pd.spname, pd.wd=pd.wd,
                                      pdid.bin=pdid.bin, sp.bin = sp.bin,spname.check = FALSE,
-                                     nworker = nworker,memo.size.GB = memory.G,weighted = TRUE,
+                                     nworker = nworker, cl = cl,memo.size.GB = memory.G,weighted = TRUE,
                                      rand = rand,output.bMNTD = detail.null,sig.index=sig.ind.phy,
                                      unit.sum=unit.sum,correct.special = correct.special,
                                      detail.null=detail.null,special.method=special.method.bNTI,
@@ -332,7 +333,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
       {
         message("----Bray bin i=",i," in ",bin.num," ---- ",date())
         RC1res[[i]]=iCAMP::RC.pc(comm = com.bin[[i]],rand = rand,
-                                 nworker = nworker,memory.G = memory.G,
+                                 nworker = nworker, cl = cl,memory.G = memory.G,
                                  unit.sum = unit.sum,meta.ab = meta.ab,
                                  sig.index=sig.ind.tax,detail.null=detail.null,
                                  output.bray=detail.null,taxo.metric=taxo.metric,
@@ -357,7 +358,7 @@ icamp.big<-function(comm,tree,pd.desc=NULL, pd.spname=NULL, pd.wd=getwd(),
   {
     if(!is.null(tempsave$RC2res)){RC2res=tempsave$RC2res}else{
       if(nrow(comm)>N.forloop){big.method="loop"}else{big.method="no"}
-      RC2res=iCAMP::RC.bin.bigc(com = comm,sp.bin = sp.bin,rand = rand,nworker = nworker,
+      RC2res=iCAMP::RC.bin.bigc(com = comm,sp.bin = sp.bin,rand = rand,nworker = nworker, cl = cl,
                                 memory.G = memory.G,big.method = big.method,
                                 unit.sum = unit.sum,meta.ab=meta.ab,
                                 sig.index=sig.ind.tax,detail.null=detail.null,

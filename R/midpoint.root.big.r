@@ -1,5 +1,6 @@
-midpoint.root.big<-function (tree, pd.desc, pd.spname, pd.wd, nworker=4) 
+midpoint.root.big<-function (tree, pd.desc, pd.spname, pd.wd, nworker=4,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   sp.name=tree$tip.label
   if(length(setdiff(sp.name,pd.spname))>0) stop("tree tip names and pd species names do not match.")
   
@@ -7,7 +8,7 @@ midpoint.root.big<-function (tree, pd.desc, pd.spname, pd.wd, nworker=4)
   requireNamespace("bigmemory")
   
   pd=bigmemory::attach.big.matrix(dget(paste0(pd.wd,"/",pd.desc)))
-  maxdis=iCAMP::maxbigm(m.desc = pd.desc,m.wd = pd.wd,nworker = nworker,
+  maxdis=iCAMP::maxbigm(m.desc = pd.desc,m.wd = pd.wd,nworker = nworker, cl = cl,
                         rm.na = TRUE,size.limit = 10000*10000)
   
   dd <- maxdis$max.value

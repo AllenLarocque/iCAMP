@@ -7,13 +7,14 @@ List nodes and edge lengthes from root to each tip and/or node
 To list all the nodes and edge lengthes from root to every tip and/or node.
 }
 \usage{
-tree.path(tree, nworker = 4, range = NA, cum = c("no", "from.root", "from.tip", "both"))
+tree.path(tree, nworker = 4, range = NA, cum = c("no", "from.root", "from.tip", "both"), cl = NULL)
 }
 \arguments{
   \item{tree}{Phylogenetic tree, an object of class "phylo".}
   \item{nworker}{for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4.}
   \item{range}{a numeric vector, to specify nodes and/or tips to which the path from root will be calculated. default is NA, means all tips.}
   \item{cum}{method to calculate cumulative banch length. "no" means not to calculate cumulative lenght; "from.root" means to cumulate from root to tip; "from.tip" means to cumulate from tip to root; "both" means to calculate in both ways and return both results.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 This function can be useful in phylogenetic diversity analysis, for example, phylogenetic distance, phylogenetic Hill number, phylogenetic binning, etc.

@@ -1,5 +1,6 @@
-tree.droot<-function(tree,range=NA,nworker=4,output.path=FALSE)
+tree.droot<-function(tree,range=NA,nworker=4,output.path=FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   if(!is.rooted(tree)){stop("The tree is not rooted, so tree.droot stop. ", date())}
   edge<-tree$edge
   edge.len<-tree$edge.length
@@ -7,17 +8,19 @@ tree.droot<-function(tree,range=NA,nworker=4,output.path=FALSE)
   rootid=edge[1,1]
     
   if(is.na(range[1])){range=(1:max(tree$edge))[-rootid]}
-  path=iCAMP::tree.path(tree,nworker,range)
+  path=iCAMP::tree.path(tree,nworker,range,cl=cl)
   droot<-function(i,path){sum(path[[i]][[2]])}
   
   requireNamespace("parallel")
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   
   message("Now computing dist to root. begin at ", date(),". Please wait...")
   dr<-parallel::parSapply(c1,1:length(path),droot,path=path)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   gc()
   
   res=data.frame(node=range,distRoot=dr)

@@ -4,8 +4,9 @@ bNTIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
                   unit.sum=NULL,correct.special=FALSE,detail.null=FALSE,
                   special.method=c("MNTD", "MPD", "both"),
                   ses.cut=1.96,rc.cut=0.95,conf.cut=0.975,
-                  dirichlet = FALSE)
+                  dirichlet = FALSE,cl=NULL)
 {
+  if(!is.null(cl)) nworker <- length(cl)
   #v20200725 add conf.cut, detail.null. change RC to sig.index.
   #load package
   requireNamespace("parallel")
@@ -44,12 +45,14 @@ bNTIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
   bMNTD.obs<-as.matrix(iCAMP::bmntd(comm, dis, abundance.weighted = weighted, exclude.conspecifics = exclude.consp,unit.sum=unit.sum)) # calculate observed betaMNTD.
   spname=colnames(comm)
   gc()
+  if(is.null(cl)){
   c1<-try(parallel::makeCluster(nworker,type="PSOCK"))
   if(inherits(c1,"try-error")){c1 <- try(parallel::makeCluster(nworker, setup_timeout = 0.5))}
   if(inherits(c1,"try-error")){c1 <- parallel::makeCluster(nworker, setup_strategy = "sequential")}
+  }else{c1 <- cl}
   message("Now randomizing by parallel computing. Begin at ", date(),". Please wait...")
   bMNTD.rand<-parallel::parLapply(c1,1:rand,bMNTD.random,diss=dis,com=comm,weighted=weighted,exclude.consp=exclude.consp,unit.sum=unit.sum)
-  parallel::stopCluster(c1)
+  if(is.null(cl)) parallel::stopCluster(c1)
   gc()
   bMNTD.rand<-array(unlist(bMNTD.rand),dim=c(nrow(bMNTD.rand[[1]]),ncol(bMNTD.rand[[1]]),length(bMNTD.rand)))
   
@@ -102,7 +105,7 @@ bNTIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
         }
         if(special.method[1] %in% c("MNTD","NTI","both"))
         {
-          nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = dis, nworker = nworker,
+          nti.ck=iCAMP::NTI.p(comm = comm.ck, dis = dis, nworker = nworker, cl = cl,
                        memo.size.GB = memo.size.GB,weighted = weighted,
                        rand = rand,output.MNTD = FALSE,sig.index=sig.nti)
           if(detail.null)
@@ -117,7 +120,7 @@ bNTIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
         
         if(special.method[1] %in% c("MPD","NRI","both"))
         {
-          nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = dis, nworker = nworker,
+          nri.ck=iCAMP::NRI.p(comm = comm.ck, dis = dis, nworker = nworker, cl = cl,
                        memo.size.GB = memo.size.GB,weighted = weighted,
                        rand = rand,output.MPD = FALSE,sig.index=sig.nti)
           if(detail.null)
@@ -142,7 +145,7 @@ bNTIn.p<-function(comm, dis, nworker=4, memo.size.GB=50,
       
       if(length(samp1.id)>0 | length(samp.sg)>0)
       {
-        rcm=(iCAMP::RC.pc(comm=comm,rand=rand,na.zero=TRUE,nworker=nworker,
+        rcm=(iCAMP::RC.pc(comm=comm,rand=rand,na.zero=TRUE,nworker=nworker, cl = cl,
                           memory.G=memo.size.GB,weighted=weighted,
                           unit.sum=unit.sum,silent=TRUE,dirichlet = dirichlet))$index
         if(length(samp1.id)>0)
