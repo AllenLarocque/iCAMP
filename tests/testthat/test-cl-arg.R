@@ -69,7 +69,7 @@ test_that("icamp.big reseeding reproduces", {
   expect_false(identical(run(8), a))
 })
 
-test_that("nworker follows the cluster", {
+test_that("a 1-worker nworker still dispatches to all of cl", {
   cl2 <- newTestCluster(2)
   withr::defer(parallel::stopCluster(cl2))
   parallel::clusterSetRNGStream(cl2, 7)
@@ -79,6 +79,31 @@ test_that("nworker follows the cluster", {
   after <- workerSeeds(cl2)
   expect_length(after, 2)
   for (i in 1:2) expect_false(identical(after[[i]], before[[i]]))
+})
+
+test_that("nworker follows the cluster: NRI.p skips its serial path", {
+  cl <- newTestCluster(2)
+  withr::defer(parallel::stopCluster(cl))
+  localNoNewClusters()
+  n <- 0
+  real <- parallel::parLapply
+  testthat::local_mocked_bindings(
+    parLapply = function(...) { n <<- n + 1; real(...) },
+    .package = "parallel")
+  iCAMP::NRI.p(comm, dis, nworker = 1, rand = 20, cl = cl)
+  expect_gte(n, 1)
+})
+
+test_that("icamp.big runs in full configuration on a supplied cluster", {
+  cl <- newTestCluster(2)
+  withr::defer(parallel::stopCluster(cl))
+  localNoNewClusters()
+  res <- iCAMP::icamp.big(
+    comm, ape::unroot(tree), pd.wd = withr::local_tempdir(),
+    output.wd = withr::local_tempdir(), rand = 20, bin.size.limit = 5,
+    nworker = 1, temp.save = FALSE, phylo.metric = "both",
+    phylo.rand.scale = "both", taxa.rand.scale = "both", cl = cl)
+  expect_false(is.null(res$CbMPDiCBraya))
 })
 
 test_that("bare cluster: missing library errors on the worker; cluster survives", {

@@ -15,7 +15,7 @@ midpoint.root.big(tree, pd.desc, pd.spname, pd.wd, nworker = 4, cl = NULL)
   \item{pd.spname}{character vector, taxa id in the same rank as the big matrix of phylogenetic distances.}
   \item{pd.wd}{folder path, where the bigmemmory file of the phylogenetic distance matrix are saved.}
   \item{nworker}{integer, for parallel computing. Either a character vector of host names on which to run the worker copies of R, or a positive integer (in which case that number of copies is run on localhost). default is 4, means 4 threads will be run.}
-  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster this function would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
+  \item{cl}{Optional cluster from \code{parallel::makeCluster()}. If given, it replaces every cluster the functions this one calls would create, \code{nworker} is taken from its size, and it is not stopped. With a 1-worker cluster, functions that have a serial path use that path instead. For reproducible results, call \code{set.seed()} and \code{parallel::clusterSetRNGStream()} before each call.}
 }
 \details{
 iCAMP analysis need a rooted tree. If it is difficult to figure out the root, midpoint root is recommended for iCAMP analysis. Modified from the function 'midpoint.root' in package 'phytool'(Revell 2012), this function uses bigmemory (Kane et al 2013) to deal with large datasets.
